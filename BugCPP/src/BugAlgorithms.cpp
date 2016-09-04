@@ -1,5 +1,8 @@
 #include "BugAlgorithms.hpp"
 #include <iostream>
+
+#define MOVE_SIZE 0.01
+
 BugAlgorithms::BugAlgorithms(Simulator * const simulator) :
     m_goalX(simulator->GetGoalCenterX()), 
     m_goalY(simulator->GetGoalCenterY()),
@@ -31,8 +34,7 @@ Move BugAlgorithms::Bug0(Sensor sensor)
     m_robotY = m_simulator->GetRobotCenterY();
 
     Move move = {0,0};
-    moveToGoal(move);
-    std::cout << "Goal x " << m_goalX << " goal y " << m_goalY << std::endl;
+    moveToGoal(move, sensor);
     return move;
 }
 
@@ -53,35 +55,68 @@ std::cout << "Hello from bug 2" << std::endl;
     return move;
 }
 
-void BugAlgorithms::moveToGoal(Move& p_move)
+void BugAlgorithms::moveToGoal(Move& p_move, const Sensor& p_sensor)
 {
     int x = 0;
     int y = 0;
-    if (m_goalX < m_robotX)
-    {
-        p_move.m_dx = -0.01;
-    }
-    else if (m_goalX > m_robotX)
-    {
-        p_move.m_dx = 0.01;
-    }
-    else // it is 0 and we are on trajectory to goal
-    {
-        p_move.m_dx = 0;
-    }
 
-    if (m_goalY < m_robotY)
+    if (!hitObsticleHorizontal(p_sensor) && !hitObsticleVerticle(p_sensor))
     {
-        p_move.m_dy = -0.01;
+        if (m_goalX < m_robotX)
+        {
+	    p_move.m_dx = -MOVE_SIZE;
+        }
+        else if (m_goalX > m_robotX)
+        {
+    	    p_move.m_dx = MOVE_SIZE;
+        }
+        else // it is 0 and we are on trajectory to goal
+        {
+	    p_move.m_dx = 0;
+        }
+
+        if (m_goalY < m_robotY)
+        {
+	    p_move.m_dy = -MOVE_SIZE;
+        }
+        else if (m_goalY > m_robotY)
+        {
+            p_move.m_dy = MOVE_SIZE;
+        }
+        else
+        {
+	    p_move.m_dy = 0;
+        }
     }
-    else if (m_goalY > m_robotY)
+    else // we have an obsticle in front of us.
     {
-        p_move.m_dy = 0.01;
-    }
-    else
-    {
-        p_move.m_dy = 0;
+        // we will move up try to move up first means we
+        // had to hit horizontally
+        if (hitObsticleHorizontal(p_sensor))
+        {
+            // decide which direction to move and move that way
+        }
+        // we have to move horizontally since we hit vertically.
+        else if (hitObsticleVerticle(p_sensor))
+        {
+            // decide which direction to move and move that way
+        }
     }
 }       
 
+//! TODO Finish horizontal and verticle functions sho
+const bool BugAlgorithms::hitObsticleHorizontal(const Sensor& p_sensor) const
+{
+    // if the dmin is violated and the robot if a MOVE_SIZE from the obsticle
+    if (p_sensor.m_dmin <= MOVE_SIZE && (m_robotX ) ) // << how to know if robot hit vertically
+    {
+        return true;
+    }
+    return false;
+}
 
+const bool BugAlgorithms::hitObsticleVerticle(const Sensor& p_sensor) const
+{
+    // stub
+    return false;
+}

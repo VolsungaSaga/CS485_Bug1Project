@@ -56,7 +56,9 @@ public:
     Move Bug1(Sensor sensor);
     Move Bug2(Sensor sensor);
 
-    void moveToGoal(Move& p_move);  
+    void moveToGoal(Move& p_move, const Sensor& p_sensor); 
+    const bool hitObsticleHorizontal(const Sensor& p_sensor) const;
+    const bool hitObsticleVerticle(const Sensor& p_sensor) const; 
   
 protected:
     /**
@@ -79,10 +81,10 @@ protected:
 
     friend class Graphics;
 private:
-    int m_goalX;
-    int m_goalY;
-    int m_robotX;
-    int m_robotY;
+    double m_goalX;
+    double m_goalY;
+    double m_robotX;
+    double m_robotY;
 };
 
 #endif
