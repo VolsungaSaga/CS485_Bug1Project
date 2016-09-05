@@ -8,8 +8,6 @@
 #include <GL/glut.h>
 #endif
 
-#include <iostream>
-
 Graphics *m_graphics = NULL;
 
 Graphics::Graphics(const char fname[], const int bugSelection) 
@@ -330,6 +328,6 @@ int main(int argc, char **argv)
     
     graphics.HandleEventOnHelp();
     graphics.MainLoop();
-    std::cout << "Hello From main!!!!" << std::endl;
+    
     return 0;    
 }

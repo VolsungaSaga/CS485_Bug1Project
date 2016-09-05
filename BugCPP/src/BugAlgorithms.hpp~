@@ -55,11 +55,6 @@ public:
     Move Bug0(Sensor sensor);
     Move Bug1(Sensor sensor);
     Move Bug2(Sensor sensor);
-  
-  bool amITooClose(Sensor sensor);
-  Move getPerpendUnitVector(double x, double y);
-  double getMagnitude(double x, double y);
-  
     
 protected:
     /**
