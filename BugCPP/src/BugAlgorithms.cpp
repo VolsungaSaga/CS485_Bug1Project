@@ -28,8 +28,7 @@ Move BugAlgorithms::Bug0(Sensor sensor)
   double yGoal = m_simulator->GetGoalCenterY();
 
   //Variables to store future move values.
-  double moveX;
-  double moveY;
+  Move moveVector;
 
 
   if(amITooClose(sensor)){
@@ -37,21 +36,21 @@ Move BugAlgorithms::Bug0(Sensor sensor)
     
     double xDistObstacle = sensor.m_xmin - xCurr;
     double yDistObstacle = sensor.m_ymin - yCurr;
-    Move perpendVector = getPerpendUnitVector(xDistObstacle, yDistObstacle);
-    moveX = perpendVector.m_dx;
-    moveY = perpendVector.m_dy;
+    
+    Move perpendVector = getPerpendVector(xDistObstacle, yDistObstacle);
+
+    moveVector = getStepVector(perpendVector.m_dx, perpendVector.m_dy);
     
   }
 
   else{
-    moveX = (xGoal - xCurr)/m_simulator->GetDistanceFromRobotToGoal();
-    moveY = (yGoal - yCurr)/m_simulator->GetDistanceFromRobotToGoal();
+    double moveX = (xGoal - xCurr);
+    double moveY = (yGoal - yCurr);
+    moveVector = getStepVector(moveX, moveY);
   }
-
-  Move move ={moveX,moveY};
   
 
-  return move;
+  return moveVector;
 }
 
 Move BugAlgorithms::Bug1(Sensor sensor)
@@ -72,7 +71,7 @@ Move BugAlgorithms::Bug2(Sensor sensor)
 }
 
 
-
+//Am I too close to an obstacle - within a certain distance, in other words?
 bool BugAlgorithms::amITooClose(Sensor sensor)
 {
   if(sensor.m_dmin <= m_simulator->GetWhenToTurn()){
@@ -85,16 +84,13 @@ bool BugAlgorithms::amITooClose(Sensor sensor)
 //Calculates the left-turning vector for a given vector (like the nearest
 //obstacle vector, for instance) in the following way:
 
-//X_perp = -y/|vector|
-//Y_perp = x/|vector|
+//X_perp = -y
+//Y_perp = x
 
 //Returns a Move struct.
-Move BugAlgorithms::getPerpendUnitVector(double x, double y){
-  //Do some vector arithmetic to find the unit vector, adapting magnitude
-  //to our step size.
-  
-  double newX = -y/getMagnitude(-y,x); 
-  double newY = x/getMagnitude(-y,x);
+Move BugAlgorithms::getPerpendVector(double x, double y){  
+  double newX = -y; 
+  double newY = x;
 
   Move newVector = {newX, newY};
 
@@ -105,6 +101,27 @@ Move BugAlgorithms::getPerpendUnitVector(double x, double y){
 double BugAlgorithms::getMagnitude(double x, double y){
 
   return sqrt((x * x)+(y * y));
+}
+
+//From the given x and y components of a vector, calculate the
+// vector of magnitude 0.06 that
+// goes in the same direction. That is:
+
+// U = ((L^2)/|V|) * V , U = vector of magnitude L, V = given vector.
+
+
+Move BugAlgorithms::getStepVector(double x, double y){
+  double stepSize = (m_simulator->GetStep());
+  double originalMagnitude = getMagnitude(x,y);
+
+  double stepX = (stepSize/originalMagnitude) * x;
+  double stepY = (stepSize/originalMagnitude) * y;
+
+  Move stepVector = {stepX, stepY};
+
+  return stepVector;
+
+
 }
        
 

@@ -55,10 +55,18 @@ public:
     Move Bug0(Sensor sensor);
     Move Bug1(Sensor sensor);
     Move Bug2(Sensor sensor);
+
+  //Custom functions, mostly having to do with vector arithmetic. More
+  // documentation available in the BugAlgorithms.cpp file, over each
+  // particular function.
   
   bool amITooClose(Sensor sensor);
-  Move getPerpendUnitVector(double x, double y);
+  
+  Move getPerpendVector(double x, double y);
   double getMagnitude(double x, double y);
+  
+  Move getStepVector(double x, double y);
+  
   
     
 protected:

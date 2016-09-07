@@ -34,7 +34,10 @@ Move BugAlgorithms::Bug0(Sensor sensor)
 
   if(amITooClose(sensor)){
     //Perpendicular vector of (a,b) = (-b, a) (for left turn)
-    Move perpendVector = getPerpendUnitVector(sensor.m_xmin, sensor.m_ymin);
+    
+    double xDistObstacle = sensor.m_xmin - xCurr;
+    double yDistObstacle = sensor.m_ymin - yCurr;
+    Move perpendVector = getPerpendUnitVector(xDistObstacle, yDistObstacle);
     moveX = perpendVector.m_dx;
     moveY = perpendVector.m_dy;
     
@@ -80,15 +83,18 @@ bool BugAlgorithms::amITooClose(Sensor sensor)
 }
 
 //Calculates the left-turning vector for a given vector (like the nearest
-//obstacle vector, for instance). 
+//obstacle vector, for instance) in the following way:
+
+//X_perp = -y/|vector|
+//Y_perp = x/|vector|
 
 //Returns a Move struct.
 Move BugAlgorithms::getPerpendUnitVector(double x, double y){
   //Do some vector arithmetic to find the unit vector, adapting magnitude
   //to our step size.
   
-  double newX = -y/getMagnitude(x,y); 
-  double newY = x/getMagnitude(x,y);
+  double newX = -y/getMagnitude(-y,x); 
+  double newY = x/getMagnitude(-y,x);
 
   Move newVector = {newX, newY};
 
