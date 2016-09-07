@@ -171,5 +171,24 @@ double BugAlgorithms::getMagnitude(double x, double y){
   return sqrt((x * x)+(y * y));
 }
        
+//From the given x and y components of a vector, calculate the
+// vector of magnitude 0.06 that
+// goes in the same direction. That is:
 
+// U = ((L^2)/|V|) * V , U = vector of magnitude L, V = given vector.
+
+
+Move BugAlgorithms::getStepVector(double x, double y){
+  double stepSize = (m_simulator->GetStep());
+  double originalMagnitude = getMagnitude(x,y);
+
+  double stepX = (stepSize/originalMagnitude) * x;
+  double stepY = (stepSize/originalMagnitude) * y;
+
+  Move stepVector = {stepX, stepY};
+
+  return stepVector;
+
+
+}
 
