@@ -105,6 +105,10 @@ public:
      */  
     Move getStepVector(const double x, const double y) const;
   
+    const bool onMVector(const double x, const double y) const;
+
+    Move follow(const Sensor& sensor, double xCurr, double yCurr) const;
+
 protected:
     /**
      *@brief Pointer to simulator
@@ -125,6 +129,12 @@ protected:
     
 
     friend class Graphics;
+
+private:
+
+    //! the vector containing the x and y coordinates of the M vector.
+    //! Such that m_MVector[0] is the X coordinate and m_MVector[1] is Y
+    bool m_onM;
 };
 
 #endif

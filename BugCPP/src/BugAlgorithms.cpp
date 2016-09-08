@@ -1,8 +1,9 @@
 #include "BugAlgorithms.hpp"
-
-BugAlgorithms::BugAlgorithms(Simulator * const simulator)
+#include <iostream>
+BugAlgorithms::BugAlgorithms(Simulator * const simulator) :
+    m_simulator(simulator),
+    m_onM(false)
 {
-    m_simulator = simulator;   
     //add your initialization of other variables
     //that you might have declared
 
@@ -61,11 +62,34 @@ Move BugAlgorithms::Bug1(Sensor sensor)
 
 Move BugAlgorithms::Bug2(Sensor sensor)
 {
-  
-    //add your implementation
-    Move move ={0,0};
-    
-    return move;
+    // does what bug 0 does except for when it hits an obsticle.
+    double xCurr = m_simulator->GetRobotCenterX();
+    double yCurr = m_simulator->GetRobotCenterY();
+
+    //The goal's position.
+    double xGoal = m_simulator->GetGoalCenterX();
+    double yGoal = m_simulator->GetGoalCenterY();
+
+    //Variables to store future move values.
+    Move moveVector;
+
+    if(amITooClose(sensor) && !m_onM)
+    {
+        moveVector = follow(sensor, xCurr, yCurr);
+        
+        if (onMVector(xCurr, yCurr))
+        {
+            m_onM = true;
+        }
+    }
+    else
+    {
+        double moveX = (xGoal - xCurr);
+        double moveY = (yGoal - yCurr);
+        moveVector = getStepVector(moveX, moveY);
+        m_onM = false;
+    }
+    return moveVector;
 }
 
 
@@ -106,8 +130,6 @@ const double BugAlgorithms::getMagnitude(const double x, const double y) const
 // goes in the same direction. That is:
 
 // U = ((L^2)/|V|) * V , U = vector of magnitude L, V = given vector.
-
-
 Move BugAlgorithms::getStepVector(const double x, const double y) const
 {
     double stepSize = (m_simulator->GetStep());
@@ -121,5 +143,22 @@ Move BugAlgorithms::getStepVector(const double x, const double y) const
     return stepVector;
 }
        
+const bool BugAlgorithms::onMVector(const double x, const double y) const
+{
+    return m_simulator->IsPointNearLine(x, y, m_simulator->GetRobotInitX(), m_simulator->GetRobotInitY(), 
+        m_simulator->GetGoalCenterX(), m_simulator->GetGoalCenterY());
+}
 
+Move BugAlgorithms::follow(const Sensor& sensor, double xCurr, double yCurr) const
+{
+    //Perpendicular vector of (a,b) = (-b, a) (for left turn)
+    Move moveVector;
+   
+    double xDistObstacle = sensor.m_xmin - xCurr;
+    double yDistObstacle = sensor.m_ymin - yCurr;
+    
+    Move perpendVector = getPerpendVector(xDistObstacle, yDistObstacle);
+    moveVector = getStepVector(perpendVector.m_dx, perpendVector.m_dy);
+    return moveVector;
+}
 
