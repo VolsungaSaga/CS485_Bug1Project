@@ -104,9 +104,22 @@ public:
         \return a Move object representing the next move of approprate step size. 
      */  
     Move getStepVector(const double x, const double y) const;
-  
+
+    /*!
+        Checks to see if the robot is on the M vector
+ 
+        \param[in] x - the current robot x
+        \param[in] y - the current robot y
+
+        \return a bool true when  near the M vector false otherwise.
+     */  
     const bool onMVector(const double x, const double y) const;
 
+    /*!
+        Gets a vector that will follow the obsticle with magnitude stepsize.
+
+        \return Move - a vector representing the next move on the proper vector.
+     */
     Move follow(const Sensor& sensor, double xCurr, double yCurr) const;
 
 protected:

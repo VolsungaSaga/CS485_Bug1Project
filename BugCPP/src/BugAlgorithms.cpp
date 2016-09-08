@@ -68,15 +68,20 @@ Move BugAlgorithms::Bug2(Sensor sensor)
 
     if(amITooClose(sensor) && !m_onM)
     {
+        // this is a hit point
         moveVector = follow(sensor, xCurr, yCurr);
         
+        // is this a leave point?
         if (onMVector(xCurr, yCurr))
         {
+            // if this is a leave point we want
+            // ensure the next step is leaving the obsticle
             m_onM = true;
         }
     }
     else
     {
+        // move to the goal
         double moveX = (xGoal - xCurr);
         double moveY = (yGoal - yCurr);
         moveVector = getStepVector(moveX, moveY);
