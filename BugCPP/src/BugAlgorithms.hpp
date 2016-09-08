@@ -59,16 +59,52 @@ public:
   //Custom functions, mostly having to do with vector arithmetic. More
   // documentation available in the BugAlgorithms.cpp file, over each
   // particular function.
+
+    /*!
+        Checks to see if dmin is violated by checking if 
+            dmin is less than when to turn
+        \param[in] sensor - the sensor object
+     */ 
+    const bool amITooClose(const Sensor& sensor) const;
   
-  bool amITooClose(Sensor sensor);
+    /*!
+        Finds a vector perpendicular to the current vector
+
+        \param[in] x - a value representing the the difference 
+            between the head of the vector (the point on the obsticle)
+            and the current x position of the robot.
+
+        \param[in] y - a value representing the the difference 
+            between the head of the vector (the point on the obsticle)
+            and the current y position of the robot.
+
+        \return a move object representing the next move
+     */
+    Move getPerpendVector(const double x, const double y) const;
+
+    /*!
+        Finds the magnitude of the given vector
+
+        \param[in] x - the x coordinate of the vector
+
+        \param[in] y - the y coordinate of the vector
+
+        \return double representing the length of the vector   
+     */
+    const double getMagnitude(const double x, const double y) const;
+
+    /*!
+        Find the next step of the robot using the magnitude of 
+            step size from the simulator object and the vector
+            
+        \param[in] x - the x coordinate to find the step vector of
+
+        \param[in] y - the y coordinate to find the step vector of.
+
+        \return a Move object representing the next move of approprate step size. 
+     */  
+    Move getStepVector(const double x, const double y) const;
   
-  Move getPerpendVector(double x, double y);
-  double getMagnitude(double x, double y);
-  
-  Move getStepVector(double x, double y);
-  
-  
-    
 protected:
     /**
      *@brief Pointer to simulator
