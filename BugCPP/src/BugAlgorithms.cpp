@@ -34,14 +34,7 @@ Move BugAlgorithms::Bug0(Sensor sensor)
 
     if(amITooClose(sensor))
     {
-        //Perpendicular vector of (a,b) = (-b, a) (for left turn)
-    
-        double xDistObstacle = sensor.m_xmin - xCurr;
-        double yDistObstacle = sensor.m_ymin - yCurr;
-    
-        Move perpendVector = getPerpendVector(xDistObstacle, yDistObstacle);
-
-        moveVector = getStepVector(perpendVector.m_dx, perpendVector.m_dy);
+        moveVector = follow(sensor, xCurr, yCurr);
     }
     else
     {
