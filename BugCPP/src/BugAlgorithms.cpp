@@ -1,5 +1,8 @@
 #include "BugAlgorithms.hpp"
 #include <iostream>
+using std::cout;
+#include <math.h>
+using namespace std;
 BugAlgorithms::BugAlgorithms(Simulator * const simulator) :
     m_simulator(simulator),
     m_onM(false)
@@ -66,22 +69,29 @@ Move BugAlgorithms::Bug2(Sensor sensor)
     //Variables to store future move values.
     Move moveVector;
 
-    if(amITooClose(sensor) && !m_onM)
+ 	bool loop = false;
+    if(amITooClose(sensor) || !(onMVector(xCurr, yCurr))) // && !m_onM && !loop)
     {
+
         // this is a hit point
+
         moveVector = follow(sensor, xCurr, yCurr);
-        
-        // is this a leave point?
-        if (onMVector(xCurr, yCurr))
+	// is this a leave point?
+
+        if (onMVector(xCurr, yCurr) && !(amITooClose(sensor))) 
         {
-            // if this is a leave point we want
-            // ensure the next step is leaving the obsticle
-            m_onM = true;
-        }
+				
+       	    // ensure the next step is leaving the obstacle
+		//m_onM = true;
+	double moveX = (xGoal - xCurr);
+        double moveY = (yGoal - yCurr);
+        moveVector = getStepVector(moveX, moveY);
+	}        
+ 
     }
-    else
-    {
-        // move to the goal
+   else{
+	cout << "hi" << loop << " \n";
+         //move to the goal
         double moveX = (xGoal - xCurr);
         double moveY = (yGoal - yCurr);
         moveVector = getStepVector(moveX, moveY);
