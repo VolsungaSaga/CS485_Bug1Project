@@ -7,17 +7,26 @@
 
 #define DIGILEN 10
 
+#define X_GOAL 1220
+#define Y_GOAL -920
+
 char buf[DIGILEN];
 char state;
 int clearCounter;
 int16_t irCenterWindow[5];
 int16_t irRightWindow[5];
 int16_t irLeftWindow[5];
-
+char hasCalledDoAchPoint;
 
 int cmpfunc (const void * a, const void * b)
 {
    return ( *(int*)a - *(int*)b );
+}
+
+int goToGoal()
+{
+
+  
 }
 
 void setup() {
@@ -28,6 +37,7 @@ void setup() {
   initializeLCD();
   clearLCD();
   state = 0;
+  hasCalledDoAchPoint = 0;
 }
 
 void loop() {
@@ -40,6 +50,10 @@ void loop() {
   char buf1[DIGILEN];
   char buf2[DIGILEN];
   
+  //int16_t dis, dis2, dis3;
+  // dis = getIR(pinout.irCenter);
+ //  dis2 = getIR(pinout.irLeft);
+ //  dis3 = getIR(pinout.irRight);
   unsigned counter;
   counter = 0;
   while (counter < 5)
@@ -63,36 +77,47 @@ void loop() {
   switch (state) {
     // move to goal case
     case 0:
-      if ((irWindow[3] > 500))
-      {
-        Serial.println("Going to state 1");
-        Serial.flush();
-        state = 1;
-      }
-      else
-      {
-        Serial.println("There is a stupid object in my way");
-        Serial.flush();
-        state = 2;
-      }
-     printLCD(buf, 3, 10);
-     printLCD(buf1, 4, 10);
-     printLCD(buf2, 5, 10);
+       if ((irCenterWindow[3] > 500))
+       {
+         Serial.println("Going to state 1");
+         Serial.flush();
+         state = 1;
+       }
+       else
+       {
+         doIdle();
+         Serial.println("There is a stupid object in my way");
+         Serial.flush();
+         state = 2;
+       }
+      printLCD(buf, 3, 10);
+      printLCD(buf1, 4, 10);
+      printLCD(buf2, 5, 10);
+      //delay(3000);
     break;
+    
     case 1:
       Serial.println("Moving forward in case 1");
       Serial.flush();
-      doForwardToDistance(200, 100);
+      if (!hasCalledDoAchPoint)
+      {
+        Serial.println("Starting aching point");
+        doAchievePoint(X_GOAL,Y_GOAL, GOOD_ROTATE, GOOD_FORWARD);
+        hasCalledDoAchPoint = 1;
+      } 
       state = 0;
+      //delay(3000);
     break;
 
     // Rotate 90 case
     case 2:
-      
+      hasCalledDoAchPoint = 0;
+      //delay(3000);
     break;
     
     // end case
     case 3:
+    delay(3000);
     if (isDone()) {
       Serial.println("In case 3!");
       doIdle();
