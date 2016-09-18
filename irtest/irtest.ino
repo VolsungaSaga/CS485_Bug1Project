@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include <FlockBotMotion.h>
 #include <FlockBotLCD.h>
 #include <FlockBotBasics.h>
@@ -8,6 +10,11 @@ char buf[DIGILEN];
 char state;
 int clearCounter;
 int16_t irWindow[5];
+
+int cmpfunc (const void * a, const void * b)
+{
+   return ( *(int*)a - *(int*)b );
+}
 
 void setup() {
   // put your setup code here, to run once:
@@ -29,7 +36,6 @@ void loop() {
   char buf1[DIGILEN];
   char buf2[DIGILEN];
   
-  //int16_t dis, dis2, dis3;
   int16_t dis, dis2, dis3;
   dis = getIR(pinout.irCenter);
   dis2 = getIR(pinout.irLeft);
@@ -39,9 +45,9 @@ void loop() {
   counter = 0;
   while (counter < 5)
   {
-    irWindow[counter] = getIR(pinout.itCenter);
+    irWindow[counter] = getIR(pinout.irCenter);
   }
-
+  qsort(irWindow, 5, sizeof(int16_t), cmpfunc);
   
   sprintf(buf, "%d", dis);
   sprintf(buf1, "%d", dis2);
