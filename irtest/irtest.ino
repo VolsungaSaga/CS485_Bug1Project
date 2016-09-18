@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <FlockBotMotion.h>
 #include <FlockBotLCD.h>
@@ -9,7 +10,10 @@
 char buf[DIGILEN];
 char state;
 int clearCounter;
-int16_t irWindow[5];
+int16_t irCenterWindow[5];
+int16_t irRightWindow[5];
+int16_t irLeftWindow[5];
+
 
 int cmpfunc (const void * a, const void * b)
 {
@@ -18,7 +22,7 @@ int cmpfunc (const void * a, const void * b)
 
 void setup() {
   // put your setup code here, to run once:
-  //Serial.begin(9600);
+  Serial.begin(9600);
   initializeFlockBot();
   initializeMotion();
   initializeLCD();
@@ -27,7 +31,7 @@ void setup() {
 }
 
 void loop() {
-  robotStateToSerial();
+//  robotStateToSerial();
   ++clearCounter;
   //int8_t batVolt;
   //batVolt = getBattery();
@@ -36,59 +40,64 @@ void loop() {
   char buf1[DIGILEN];
   char buf2[DIGILEN];
   
-  int16_t dis, dis2, dis3;
-  dis = getIR(pinout.irCenter);
-  dis2 = getIR(pinout.irLeft);
-  dis3 = getIR(pinout.irRight);
-  
   unsigned counter;
   counter = 0;
   while (counter < 5)
   {
-    irWindow[counter] = getIR(pinout.irCenter);
+    irCenterWindow[counter] = getIR(pinout.irCenter);
+    irRightWindow[counter] = getIR(pinout.irRight);
+    irLeftWindow[counter] = getIR(pinout.irLeft);
+    ++counter;
   }
-  qsort(irWindow, 5, sizeof(int16_t), cmpfunc);
+  qsort(irCenterWindow, 5, sizeof(int16_t), cmpfunc);
+  qsort(irRightWindow, 5, sizeof(int16_t), cmpfunc);
+  qsort(irLeftWindow, 5, sizeof(int16_t), cmpfunc);
   
-  sprintf(buf, "%d", dis);
-  sprintf(buf1, "%d", dis2);
-  sprintf(buf2, "%d", dis3);
+  Serial.println(irCenterWindow[3]);
+  Serial.flush();
+  sprintf(buf, "%d", irCenterWindow[3]);
+  sprintf(buf1, "%d", irRightWindow[3]);
+  sprintf(buf2, "%d", irLeftWindow[3]);
       
   // put your main code here, to run repeatedly:
   switch (state) {
     // move to goal case
     case 0:
-      if (!isDone() && (dis > 12000))
+      if ((irWindow[3] > 500))
       {
-        printLCD("Moving Forward", 0, 0);
-        //Serial.println("Moving forward");
+        Serial.println("Going to state 1");
+        Serial.flush();
         state = 1;
       }
-      else if (!isDone() && dis < 1200)
+      else
       {
-        printLCD("Not moving forward", 6, 0);
-        //state = 3;
+        Serial.println("There is a stupid object in my way");
+        Serial.flush();
+        state = 2;
       }
-      
-      //doAchievePoint(150, 150, GOOD_ROTATE, GOOD_FORWARD);
      printLCD(buf, 3, 10);
      printLCD(buf1, 4, 10);
      printLCD(buf2, 5, 10);
     break;
     case 1:
-      doForwardToDistance(200, 500);
+      Serial.println("Moving forward in case 1");
+      Serial.flush();
+      doForwardToDistance(200, 100);
       state = 0;
     break;
 
-    // follow case
+    // Rotate 90 case
     case 2:
-
+      
     break;
     
     // end case
     case 3:
     if (isDone()) {
+      Serial.println("In case 3!");
       doIdle();
       state++;
+      exit(0);
     }
     break;
   }
