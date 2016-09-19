@@ -52,7 +52,7 @@ public:
     /**
      *@brief Take sensor reading from robot center
      */
-    Sensor TakeSensorReading(void) const;
+    Sensor TakeSensorReading(void) const; 
 
     /**
      *@brief Determine if two points (x1, y1) and (x2, y2) are near each other
@@ -145,6 +145,17 @@ public:
     double GetGoalCenterY(void) const
     {
 	return m_goalCenterY;	
+    }
+
+    /**
+     *@brief Get distance from the robot center to the loop's finish (BUG1 ONLY)
+     */
+    double GetDistanceFromLoopFin(const double go1, const double go2, const double spot1, const double spot2) const
+    {
+        printf("m_robotCenterX:%1.2f,m_robotCenterY:%1.2f\n",m_robotCenterX,m_robotCenterY);
+	return
+	    sqrt((go1 - spot1) * (go1 - spot1) +
+		 (go2 - spot2) * (go2 - spot2));	
     }
 
     /**
