@@ -152,10 +152,11 @@ public:
      */
     double GetDistanceFromLoopFin(const double go1, const double go2, const double spot1, const double spot2) const
     {
-        printf("m_robotCenterX:%1.2f,m_robotCenterY:%1.2f\n",m_robotCenterX,m_robotCenterY);
+        //printf("m_robotCenterX:%1.2f,m_robotCenterY:%1.2f\n",m_robotCenterX,m_robotCenterY);
 	return
-	    sqrt((go1 - spot1) * (go1 - spot1) +
-		 (go2 - spot2) * (go2 - spot2));	
+            //sensor1-go1-spot1;
+	    sqrt((go1 - spot1) * (go1 -spot1) + (go2-spot2) * (go2-spot2));
+            //sqrt((sensor1 - go1 - spot1) * (sensor1 - go1 - spot1));	
     }
 
     /**
