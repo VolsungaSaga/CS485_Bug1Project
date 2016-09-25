@@ -76,9 +76,9 @@ Move BugAlgorithms::Bug1(Sensor sensor)
             m_best[1] = 1000;
             timesRep+=1;
         }
-        else if (timesRep >= 4) {
+        else if ((timesRep >= 4) && (!amITooClose(sensor))) {
             timesRep = -1;
-            m_leave[0] = m_leave[1] = 0;
+            //m_leave[0] = m_leave[1] = 0;
             //m_best[0] = m_best[1] = 1000;
         }
         xMove = (xGoalPos - xCurr2);
@@ -87,15 +87,16 @@ Move BugAlgorithms::Bug1(Sensor sensor)
     }
     else {
         //This code is our circle 
-        /*printf("m_leave[0]:%1.2f\n",m_leave[0]);
-        printf("m_leave[1]:%1.2f\n",m_leave[1]);
-        if (m_leave[0] == 0)
-            exit(1);*/
-        //exit(1);
+        if (timesRep >= 4) {
+            xMove = (xGoalPos - xCurr2);
+            yMove = (yGoalPos - yCurr2);
+            move = getStepVector(xMove, yMove);
+            return move;
+        }
         if (timesRep <= 1) {
             if (timesRep == 0) {
-                m_leave[0] = sensor.m_xmin-xCurr2;
-                m_leave[1] = sensor.m_ymin-yCurr2;
+                m_best[0] = m_leave[0] = xCurr2;//sensor.m_xmin-xCurr2;
+                m_best[1] = m_leave[1] = yCurr2;//sensor.m_ymin-yCurr2;
             }
             Move perpVec = getPerpendUnitVector(sensor.m_xmin-xCurr2,sensor.m_ymin-yCurr2);
             /*xMove = perpVec.m_dx;
@@ -104,36 +105,56 @@ Move BugAlgorithms::Bug1(Sensor sensor)
             timesRep++;
             return move;
         }
+        //For actual movement
         xMove = sensor.m_xmin - xCurr2;
         yMove = sensor.m_ymin - yCurr2;
-        if (((xGoalPos - m_best[0]) < (xGoalPos - (sensor.m_xmin-xCurr2))) && (timesRep < 4))
-            m_best[0] = sensor.m_xmin-xCurr2;
-        if (((yGoalPos - m_best[1]) < (yGoalPos - (sensor.m_ymin-yCurr2))) && (timesRep < 4))
-            m_best[1] = sensor.m_ymin-yCurr2;
-        /*sprite needs to have a radius*/
-        /*Params can be easily changed*/
-        if ((timesRep == 2) && ((m_simulator->GetDistanceFromLoopFin(xMove, yMove, m_leave[0], m_leave[1])) >= 2.0)) {
-            timesRep += 1;
-            //exit(1);
+        //double m_leavePlusX = m_leave[0]-.14;
+        double m_leaveMinusX = m_leave[0]-.10;
+        //checkBest checks the current distance to goal pos from our current best
+        double checkBest = (m_simulator->GetDistanceFromLoopFin(xGoalPos, yGoalPos, m_best[0], m_best[1]));
+        //checkCurr checks our current distance to goal pos from our current loc
+        double checkCurr = (m_simulator->GetDistanceFromLoopFin(xGoalPos, yGoalPos, xCurr2, yCurr2));
+        if ((checkBest > checkCurr) && (timesRep < 3)) {
+            m_best[0] = xCurr2;
+            m_best[1] = yCurr2;
         }
-        if ((timesRep == 3) && ((m_simulator->GetDistanceFromLoopFin(xMove,yMove,m_best[0],m_best[1])) >= 0.25))  {
+        /*sprite needs to have a radius*/
+        /*Params can be easily changed; think vals are hardcoded tho*/
+        //NEEDS A LOTTA WORK; checkCircleX and checkCircleY needs work, specifically
+        if ((timesRep == 2) && ((((m_leave[0]-0.5)<= xCurr2) && (xCurr2 <= (m_leave[0]))) && ((m_leave[1]-0.5) <= yCurr2) && (yCurr2 <= (m_leave[1]))) && (m_best[0] > m_leave[0]||m_best[0] < m_leave[0])) {
             timesRep += 1;
+            /*printf("timesRep:%d\n",timesRep);
+            printf("xLeave: %1.2f, yLeave: %1.2f\n",m_leave[0],m_leave[1]);
+            printf("xBest: %1.2f, yBest: %1.2f\n",m_best[0],m_best[1]);
+            printf("xCurr: %1.2f, yCurr: %1.2f\n\n",(sensor.m_xmin-xCurr2),(sensor.m_ymin-yCurr2));
+            exit(1);*/
+        }
+        //Current problem now is with timesRep and making sure that it's able to jump off to the goal
+        /*if ((timesRep == 3) && (((m_best[0]-0.1) <= xCurr2) && (xCurr2 <= m_best[0])) && (((m_best[1]-0.5 <= yCurr2) && (yCurr2 <= m_best[1])))) {
+            timesRep += 1;
+            //printf("WE MADE IT FAM\n");
             //exit(1);
+        }*/
+        if ((timesRep == 3) && (checkCurr <= checkBest)) {
+            timesRep += 1;
         }
         Move perpVec = getPerpendUnitVector(xMove,yMove);
         /*xMove = perpVec.m_dx;
         yMove = perpVec.m_dy;*/
         move = getStepVector(perpVec.m_dx, perpVec.m_dy);
+        printf("CheckBest:%1.2f,CheckCurr:%1.2f\n",checkBest,checkCurr);
      }
 
-     double g = m_simulator->GetDistanceFromLoopFin(xMove,yMove,m_leave[0],m_leave[1]);
-     printf("\n");
-     printf("DistLoopFin:%1.2f\n",g);
+     //double g = m_simulator->GetDistanceFromLoopFin(xMove,yMove,m_leave[0],m_leave[1]);
+     //printf("\n");
+     //printf("DistLoopFin:%1.2f\n",g);
      printf("timesRep:%d\n",timesRep);
      printf("xLeave: %1.2f, yLeave: %1.2f\n",m_leave[0],m_leave[1]);
+     printf(" xLeaveRangeMin: %1.2f, yLeaveRangeMin: %1.2f\n xLeaveRangeMax:%1.2f, yLeaveRangeMax:%1.2f\n",m_leave[0]-.50,m_leave[1]-0.5,m_leave[0]+0.5,m_leave[1]+0.5);
      printf("xBest: %1.2f, yBest: %1.2f\n",m_best[0],m_best[1]);
-     printf("xCurr: %1.2f, yCurr: %1.2f\n\n",(sensor.m_xmin-xCurr2),(sensor.m_ymin-yCurr2));
-
+     printf(" xBestRangeMin:%1.2f, yBestRangeMin:%1.2f\n",m_best[0]-0.5,m_best[1]-0.5);
+     printf("xCurr: %1.2f, yCurr: %1.2f\n\n",xCurr2,yCurr2); //(sensor.m_xmin-xCurr2),(sensor.m_ymin-yCurr2));
+     
     return move;
 }
 
@@ -199,5 +220,4 @@ double BugAlgorithms::getMagnitude(double x, double y){
   return sqrt((x * x)+(y * y));
 }
        
-
 
