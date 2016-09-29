@@ -10,17 +10,25 @@
 #define X_GOAL 1220
 #define Y_GOAL -920
 
-//Sensor constants, based on what we've seen to be 'good' values for stopping
+//Sensor constants (mm), based on what we've seen to be 'good' values for stopping
 
 #define RIGHT_CLEARANCE 500
 #define FRONT_CLEARANCE 500
 
+//Rotation constants (rad/sec), to ensure that the bot doesn't bank too sharply and mess itself up.
+
+#define RIGHT_BANK -0.2
+#define LEFT_BANK 0.1
+
 char buf[DIGILEN];
 char state;
 int clearCounter;
+
 int16_t irCenterWindow[5];
 int16_t irRightWindow[5];
 int16_t irLeftWindow[5];
+int16_t irFrontRightWindow[5];
+
 char hasCalledDoAchPoint;
 char hasCalledRotate;
 
@@ -62,7 +70,7 @@ void setup() {
   amICorrectingRight = false;
   amIGoingForward = false;
 
-  //Delay for 7 seconds, to allow for setting robot down and such.
+  //Delay for 3 seconds, to allow for setting robot down and such.
   delay(3000);
 }
 
@@ -91,13 +99,16 @@ void loop() {
     irCenterWindow[counter] = getIR(pinout.irCenter);
     irRightWindow[counter] = getIR(pinout.irRight);
     irLeftWindow[counter] = getIR(pinout.irLeft);
+    //irFrontRightWindow[counter] = getIR(pinout.irFrontRight);
     ++counter;
   }
   qsort(irCenterWindow, 5, sizeof(int16_t), cmpfunc);
   qsort(irRightWindow, 5, sizeof(int16_t), cmpfunc);
   qsort(irLeftWindow, 5, sizeof(int16_t), cmpfunc);
+  //qsort(irFrontRightWindow, 5, sizeof(int16_t), cmpfunc);
 
-  Serial.println(irCenterWindow[3]);
+  Serial.println("Center IR Reading:" + irCenterWindow[2]);
+  Serial.println("Front Right IR Reading: " + irFrontRightWindow[2]);
   Serial.flush();
   sprintf(buf, "%d", irCenterWindow[3]);
   sprintf(buf1, "%d", irRightWindow[3]);
@@ -123,7 +134,7 @@ void loop() {
       printLCD(buf, 3, 10);
       printLCD(buf1, 4, 10);
       printLCD(buf2, 5, 10);
-     //delay(3000);
+       delay(3000);
       break;
 
     case 1:
@@ -136,7 +147,7 @@ void loop() {
         hasCalledDoAchPoint = 1;
       }
       state = 0;
-      //delay(3000);
+      delay(3000);
       break;
 
     // Rotate 90 case
@@ -146,77 +157,87 @@ void loop() {
       Serial.println(irRightWindow[2]);
       Serial.flush();
       switch (WallFollowState) {
-        case 0:
+        case 0: //TURN PARALLEL STATE
           if (!hasCalledRotate)
           {
             Serial.println("calling rotate");
             Serial.flush();
+            
             doRotate(GOOD_ROTATE);
             hasCalledRotate = 1;
+          
           }
           ++WallFollowState;
           break;
 
 
-        case 1: //After seeing a wall, choose what action to take.
+        case 1: // TURNING PARALLEL STATE
+        //After seeing a wall, choose what action to take.
           Serial.println("Saw a wall choosing action");
           Serial.flush();
           if (irCenterWindow[2] < FRONT_CLEARANCE) { //See something to my front?
             WallFollowState = 1;
-            hasCalledRotate = 1;
-            Serial.println("Saw something to my front");
+          //  hasCalledRotate = 1;
+            Serial.println("Still rotating!");
             Serial.flush();
 
           }
 
           else if ((irCenterWindow[2] >= FRONT_CLEARANCE) && (irRightWindow[2] < RIGHT_CLEARANCE)) { //If I don't see anything in front, but see something to my right...
             doIdle();
+            hasCalledRotate = 0;
             WallFollowState = 2;
             Serial.println("Nothing to front something to right,");
 
           }
           break;
 
-        case 2: //When I'm following the wall, check if I need to correct course.
+        case 2: //COURSE CORRECTION STATE 
+        //When I'm following the wall, check if I need to correct course.
 
-           /* if ((irCenterWindow[2] < FRONT_CLEARANCE))
+            if ((irCenterWindow[2] < FRONT_CLEARANCE))
             {
-              Serial.println("*************** Broke if statement");
+              Serial.println("*************** Corner Detected!");
               doIdle();
-              WallFollowState = 0;
-              hasCalledRotate = 0;
+              if(!hasCalledRotate){
+                doRotate(GOOD_ROTATE/2);
+                hasCalledRotate = 1;
+
+              }
+              WallFollowState = 3;
               break;
-            }*/
+            }
         
-          if (irRightWindow[2] < 180) { //If I'm too close to the wall...
+          else if ((irRightWindow[2] < 180)) { //If I'm too close to the wall...
             if (amICorrectingLeft == false) {
               Serial.println("Too close, correcting left");
-              doCurve(0.1, GOOD_FORWARD);
+              doCurve(LEFT_BANK, GOOD_FORWARD);
               //doForward(GOOD_FORWARD);
               amICorrectingLeft = true;
               amICorrectingRight = false;
+              amIGoingForward = false;
             }
-            Serial.println("Too close, correcting left on outside");
+            //Serial.println("Too close, correcting left on outside");
             WallFollowState = 2;
           }
           else if((180 <= irRightWindow[2]) && (irRightWindow[2] <= 240)){
             if(amIGoingForward == false){
               doForward(GOOD_FORWARD);
-              Serial.println("im in the right spot omg");
+              Serial.println("Within the strip, going forward.");
               amICorrectingLeft = false;
               amICorrectingRight = false;
               amIGoingForward = true;
             }
             WallFollowState = 2;
-            Serial.println("im in the right spot on the outside");
           }  
-          else if ((240 < irRightWindow[2]) && (irRightWindow[2] <= 500)) { //Am I slowly veering away from the wall?
+          else if (((240 < irRightWindow[2])) && ((irRightWindow[2] <= 500))) { //Am I slowly veering away from the wall?
             if (amICorrectingRight == false) {
-              Serial.println("Within the strip, correcting right");
-              doCurve(-1, GOOD_FORWARD);
+              Serial.println("Too far, correcting right.");
+              doCurve(RIGHT_BANK, GOOD_FORWARD);
               //doForward(GOOD_FORWARD);
               amICorrectingLeft = false;
               amICorrectingRight = true;
+              amIGoingForward = false;
 
             }
             WallFollowState = 2;
@@ -226,18 +247,29 @@ void loop() {
             doIdle();
             amICorrectingLeft = false;
             amICorrectingRight = false;
-            Serial.println("Called idle and stopped because I am an idiot@@@@@@");
-            WallFollowState = 3;
+            Serial.println("Lost visual with the wall, stopping.");
+            WallFollowState = 4; //Case 4 doesn't exist, so we've broken out of the Wall Following state.
 
           }
           break;
+
+          case 3: //CORNER STATE
+
+            if(irCenterWindow[2] > FRONT_CLEARANCE){ // Do I no longer see anything to the front?
+               doIdle();
+               WallFollowState = 2;
+               
+              }
+
+            break;
+            
       }//end inner switch   
       hasCalledDoAchPoint = 0;
-      //delay(3000);
+      delay(3000);
       break;  
       // end case in the outer switch
     case 3:
-      //delay(3000);
+      delay(3000);
       if (isDone()) {
         Serial.println("In case 3!");
         doIdle();
@@ -252,3 +284,13 @@ void loop() {
     clearLCD();
   }
 }
+
+
+//void wallFollow(){
+//  
+//  doRotate(GOOD_ROTATE/2);
+//  WallFollowState = 
+//  
+//  
+//  }
+
