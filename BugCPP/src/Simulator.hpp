@@ -158,7 +158,10 @@ public:
 	    sqrt((go1 - spot1) * (go1 -spot1) + (go2-spot2) * (go2-spot2));
             //sqrt((sensor1 - go1 - spot1) * (sensor1 - go1 - spot1));	
     }
-
+    //DELETE IF UNNECESSARY
+    double GetOneValDistFromLoopFin(const double var1, const double go1) const {
+        return sqrt((go1 - var1) * (go1 - var1));
+    }
     /**
      *@brief Get distance from the robot center to the goal
      */
