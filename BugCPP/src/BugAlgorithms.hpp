@@ -7,6 +7,8 @@
 #define BUG_ALGORITHMS_HPP_
 
 #include "Simulator.hpp"
+#include <vector>
+
 
 /**
  * @brief Bug algorithm computes a small move (m_dx, m_dy) that the robot needs to make
@@ -145,9 +147,15 @@ protected:
 
 private:
 
+    std::vector<double> m_closest;
+
     //! the vector containing the x and y coordinates of the M vector.
     //! Such that m_MVector[0] is the X coordinate and m_MVector[1] is Y
     bool m_onM;
+
+    bool m_Mode;
+
+    bool m_hitBug2;
 };
 
 #endif
