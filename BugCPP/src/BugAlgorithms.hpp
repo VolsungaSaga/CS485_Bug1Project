@@ -59,7 +59,7 @@ public:
   bool amITooClose(Sensor sensor);
   Move getPerpendUnitVector(double x, double y);
   double getMagnitude(double x, double y);
-  
+  Move getStepVector(double x, double y);  
     
 protected:
     /**
@@ -76,8 +76,8 @@ protected:
 	    AROUND
 	};
 
-    double m_hit[2], m_leave[2], m_distLeaveToGoal;
-    int    m_mode;
+    double m_hit[2], m_leave[2],m_best[2], m_distLeaveToGoal;
+    int    m_mode, timesRep;
     
 
     friend class Graphics;
