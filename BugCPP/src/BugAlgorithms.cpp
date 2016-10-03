@@ -1,14 +1,18 @@
 #include "BugAlgorithms.hpp"
 #include <iostream>
-using std::cout;
 #include <math.h>
-using namespace std;
 BugAlgorithms::BugAlgorithms(Simulator * const simulator) :
+    m_closest(2),
     m_simulator(simulator),
-    m_onM(false)
+    m_onM(false),
+    m_Mode(false),
+    m_hitBug2(false)
 {
     //add your initialization of other variables
     //that you might have declared
+
+    m_closest[0] = 0;
+    m_closest[1] = 0;
 
     m_mode = STRAIGHT;
     m_hit[0] = m_hit[1] = HUGE_VAL;
@@ -58,6 +62,7 @@ Move BugAlgorithms::Bug1(Sensor sensor)
 
 Move BugAlgorithms::Bug2(Sensor sensor)
 {
+
     // does what bug 0 does except for when it hits an obsticle.
     double xCurr = m_simulator->GetRobotCenterX();
     double yCurr = m_simulator->GetRobotCenterY();
@@ -66,36 +71,58 @@ Move BugAlgorithms::Bug2(Sensor sensor)
     double xGoal = m_simulator->GetGoalCenterX();
     double yGoal = m_simulator->GetGoalCenterY();
 
+    double closestX = m_closest[0];
+    double closestY = m_closest[1];
+  
     //Variables to store future move values.
     Move moveVector;
 
- 	bool loop = false;
-    if(amITooClose(sensor) || !(onMVector(xCurr, yCurr))) // && !m_onM && !loop)
+    if (!m_Mode)
     {
-
-        // this is a hit point
-
-        moveVector = follow(sensor, xCurr, yCurr);
-	// is this a leave point?
-
-        if (onMVector(xCurr, yCurr) && !(amITooClose(sensor))) 
+        if(!amITooClose(sensor))   
         {
-				
-       	    // ensure the next step is leaving the obstacle
-		//m_onM = true;
-	double moveX = (xGoal - xCurr);
-        double moveY = (yGoal - yCurr);
-        moveVector = getStepVector(moveX, moveY);
-	}        
- 
+            double moveX = (xGoal - xCurr);
+            double moveY = (yGoal - yCurr);
+            moveVector = getStepVector(moveX, moveY);    
+        }
+        else
+        {
+            double distanceFromClosestToGoal = std::sqrt( ((xGoal - closestX) * (xGoal - closestX)) + 
+                ((yGoal - closestY) * (yGoal - closestY)));
+            double distanceFromBotToGoal = m_simulator->GetDistanceFromRobotToGoal();
+
+            if (!m_hitBug2)
+            {
+                m_closest[0] = xCurr;
+                m_closest[1] = yCurr;
+                m_hitBug2 = true;
+            }
+            else if (distanceFromClosestToGoal >= distanceFromBotToGoal)
+            {
+                m_closest[0] = xCurr;
+                m_closest[1] = yCurr;
+            }
+            m_Mode = true;
+        } 
+        
     }
-   else{
-	cout << "hi" << loop << " \n";
-         //move to the goal
-        double moveX = (xGoal - xCurr);
-        double moveY = (yGoal - yCurr);
-        moveVector = getStepVector(moveX, moveY);
-        m_onM = false;
+    else
+    {
+	double distanceFromClosestToGoal = std::sqrt( ((xGoal - closestX) * (xGoal - closestX)) + 
+	    ((yGoal - closestY) * (yGoal - closestY)));
+	double distanceFromBotToGoal = m_simulator->GetDistanceFromRobotToGoal();
+            
+	if (distanceFromBotToGoal  < distanceFromClosestToGoal && onMVector(xCurr, yCurr))
+	{
+	    m_Mode = false;
+            double moveX = (xGoal - xCurr);
+            double moveY = (yGoal - yCurr);
+            moveVector = getStepVector(moveX, moveY);    
+	}
+	else
+	{
+	    moveVector = follow(sensor, xCurr, yCurr);
+	}
     }
     return moveVector;
 }
