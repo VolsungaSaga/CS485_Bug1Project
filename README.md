@@ -16,8 +16,9 @@ What each team member did:
     Sara Saad: Worked on Bug2 with Joshua, Robert.
   
   Flockbot Implementation:
+  
     Joshua Lilly: Wall-Following with Sara, Robert. Bug0 with Sara, Robert
     Robert Pierce: Bug0 with Sara, Joshua (Main state transition code). Wall-Following with Sara, Joshua. Servoing, attempted refactoring.
-    Joe Brock: <HELP ME, JOE!> 
+    Joe Brock: 
     Sara Saad: Wall-Following with Joshua, Robert. Bug0 with Joshua, Robert. 
 
