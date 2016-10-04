@@ -6,7 +6,7 @@ Simulator::Simulator(void)
     m_robotCenterY = m_robotInitY =  13;
     
     m_goalCenterX  = 16;
-    m_goalCenterY  = -12;    
+    m_goalCenterY  = -12; 
 }
 
 Simulator::~Simulator(void)
