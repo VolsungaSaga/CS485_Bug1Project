@@ -124,6 +124,9 @@ public:
      */
     Move follow(const Sensor& sensor, double xCurr, double yCurr) const;
 
+    Move getPerpendUnitVector(double x, double y); 
+    double getMagnitude(double x, double y); 
+
 protected:
     /**
      *@brief Pointer to simulator
@@ -139,9 +142,8 @@ protected:
 	    AROUND
 	};
 
-    double m_hit[2], m_leave[2], m_distLeaveToGoal;
-    int    m_mode;
-    
+    double m_hit[2], m_leave[2],m_best[2], m_distLeaveToGoal;
+    int    m_mode, timesRep;
 
     friend class Graphics;
 
