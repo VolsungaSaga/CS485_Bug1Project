@@ -1,0 +1,208 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="LibreOffice 3.6  (Linux)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGED" CONTENT="20140224;14124100">
+	<STYLE TYPE="text/css">
+	<!--
+		H1 { margin-left: 0.21in; margin-right: 0.21in; color: #000000; font-family: "Geneva", "Arial", "Helvetica", sans-serif; text-align: center }
+		P { margin-left: 0.21in; margin-right: 0.21in; color: #000000; font-family: "Geneva", "Arial", "Helvetica", sans-serif }
+		H2 { margin-left: 0.21in; margin-right: 0.21in; color: #000000; font-family: "Geneva", "Arial", "Helvetica", sans-serif }
+		A:link { color: #1a41a8 }
+		A:visited { color: #1a41a8 }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" TEXT="#000000" LINK="#1a41a8" VLINK="#1a41a8" BGCOLOR="#ffffff" DIR="LTR">
+<H1>CS485 (Shehu) Project 2: Potential Field Planning for Rigid Bodies</H1>
+<P ALIGN=CENTER><B>Due Date: Oct-31-2016</B> <B>@ 11:59PM EST</B> </P>
+
+
+<H2><A NAME="sec_compiling"></A>Project Summary</H2>
+<UL>
+        <LI><P STYLE="margin-bottom: 0in"> You can work in a team of
+        no more than 4 members.
+	</P>
+
+        <LI><P STYLE="margin-bottom: 0in"> You can work in the same
+        team as in Project1 or change the team.
+	</P>
+
+	<LI><P STYLE="margin-bottom: 0in"> The project is graded out
+	of 100 points, and consists of a <b>simulation</b> and an
+	<b>implementation</b> part. There is an extra credit of 10 points.
+	</P>
+</UL>
+
+
+
+<H2><A NAME="sec_compiling"></A>Part I. Simulation [50 pts]</H2>
+
+<UL>
+	<LI><P STYLE="margin-bottom: 0in">Implement a potential field
+	planner for a <EM><B>rigid robot translating and rotating in
+	the plane</B></EM> (50pts)
+	</P>
+
+        <LI> <P>Environment consists of a robot, a goal region
+         represented as a circle, and several obstacles also
+         represented as circles.  The graphical interface supports the
+         dynamic addition and displacement of obstacles and goal. A
+         new obstacle can be added at any time by pressing down the
+         left-button of the mouse. Each obstacle and the goal can be
+         moved around by clicking inside them and holding the
+         left-button down while moving the mouse. To run the planner,
+         user needs to press the key 'p' on the keyboard. Pressing 'p'
+         again toggles between running and stopping the planner. User
+         can change the radius of each obstacle and the goal by first
+         pressing the key 'r' and then clicking inside an
+         obstacle/goal, holding the left-button down while moving the
+         mouse. Pressing 'r' again toggles between editing radius or
+         moving the obstacles and the goal. </P> </LI>
+
+        <LI> <P>The simulator provides access to the goal center, goal
+        radius, number of obstacles, current robot configuration
+        (robot x, robot y, robot theta), and vertices of the polygon
+        representing the robot. Simulator also computes the closest
+        point on the i-th obstacle for any given point (x, y), see
+        function <B>ClosestPointOnObstacle</B></P></LI>
+
+        <LI> <P>When computing the potential, it is recommended that
+        you use each vertex of the polygon robot as a control
+        point.</P></LI>
+
+        <LI><P STYLE="margin-bottom: 0in">For each control point (xj,
+	yj), you should then: </P>
+
+	<UL>
+		<LI><P STYLE="margin-bottom: 0in">compute its Jacobian
+		matrix Jac<SUB>j</SUB></P></LI>
+
+		<LI><P STYLE="margin-bottom: 0in">compute the
+		workspace gradient (wsg<SUB>i</SUB>) to each obstacle
+		[In my implementation, wsg<SUB>i</SUB> is zero if the
+		distance from (xj, yj) to the closest point on the
+		i-th obstacle is larger than a small constant. I then
+		scale the gradient in order to ensure that the robot
+		gets pushed away when coming close to the
+		obstacles. You may need to play around in order to
+		figure out by how much to scale the gradient in order
+		to get the desired behavior.]</P></LI>
+
+		<LI><P STYLE="margin-bottom: 0in">use the Jacobian
+		matrix to transform wsg<SUB>i</SUB> into a
+		configuration space gradient csg<SUB>i</SUB>, which is
+		then added to the overall configuration space gradient
+		csg </P></LI>
+
+		<LI><P STYLE="margin-bottom: 0in">compute the
+		workspace gradient to the goal, scale it
+		appropriately, transform it into a configuration space
+		gradient via the Jacobian, and add it to the overall
+		configuration space gradient</P></LI>
+	</UL>
+	
+        <LI><P>When the overall configuration space gradient has been
+	computed, scale it so that you make a small move in x and y
+	and a small move in theta. Recall that the robot should always
+	move in direction opposite to the gradient.</P></LI>
+
+        <LI><P> If you implement a strategy for the robot to escape
+        local minima, you will be awarded 10 extra credit
+        points.</P></LI>
+
+        <LI> <P>If using <B>C++</B> support code, you should implement
+        the function <B>ConfigurationMove</B> in the
+        class <B>RigidBodyPlanner.</B>  This function should
+        return <B>RigidBodyMove</B>, which represents a small move
+        (dx, dy, dtheta) by the robot.</P></LI>
+
+</UL>
+
+
+<UL>
+<H2><A NAME="sec_compiling3"></A>Part II. Pioneer Implementation [50
+pts]</H2>
+       <UL>
+       <LI><P STYLE="margin-bottom: 0in"> You will use the pioneer
+	system for this project. You can still hardcode the location
+	of the goal and use box-like obstacles as in project 1. The
+	pioneers are equipped with sonar sensors. You will implement
+	all the following behaviors using arduinos.
+
+       <LI><P STYLE="margin-bottom: 0in"><b>Attraction-Servoing (10
+       pts):</b> The robot will head towards the goal and stop when it
+       has deemed to have reached it.
+	</P>
+
+        <LI><P STYLE="margin-bottom: 0in"> <b>Repulsion-Wandering (15
+        pts).</b> The robot will move away from an obstacle when
+        placed near it.
+	</P>
+	<LI><P STYLE="margin-bottom:
+	0in"><b>Attraction+Potential-Potential Field Planner (25
+	pts)</b>. The robot will implement the potential field
+	algorithm that you tested in Part I in a simulation
+	environment.
+	</P>
+       </UL>
+</UL>
+
+<H2><A NAME="sec_compiling3"></A>What to Submit</H2>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"> Create a folder named as
+	follows: LastName1_LastName2_LastName3_LastName4. </P>
+         
+	<LI><P STYLE="margin-bottom: 0in"> Inside, create two
+	subdirectories, named PartI and PartII.</P>
+
+	<LI><P STYLE="margin-bottom: 0in"> In PartI, please place your
+	CPPRigidBodyPFP code.</P>
+
+        <LI><P STYLE="margin-bottom: 0in"> For PartII, please
+	coordinate with David on filling out a table with passed
+	milestones as you make your way through completing Part
+	II.</P>
+
+        <LI><P STYLE="margin-bottom: 0in"> In addition, provide a
+	README file in the LastName1_LastName2_LastName3_LastName4
+	that lists the full names of the members of your team and
+	details what each member did in the project. You can also use
+	your README file to instruct of any special needs for
+	compilation and execution of your code. </P> 
+
+        <LI><P STYLE="margin-bottom: 0in"> Zip the folder
+	LastName1_LastName2_LastName3_LastName4 and submit via
+	blackboard.
+	</P>
+</UL>
+
+<H2><A NAME="sec_compiling3"></A>Suggested Milestones and Division of Labor</H2>
+<UL>
+<LI><P STYLE="margin-bottom: 0in"> You have 3.5 weeks for this
+project, but time flies. So, keeping track of milestones and dividing
+labor increases your chances of completing this assignment in time. I
+suggest three milestones.</P>
+
+<LI><P STYLE="margin-bottom: 0in"> If working in a 4-member team, you
+should spend no more than 1.5 weeks, to coding the potential field
+planner in the simulation environment. I suggest you all participate
+in it to get hands-on understanding of the behavior of planner. You
+can take short breaks from coding and use those breaks to get the hang
+of the new sonar sensors and how to use them in the pioneer to
+accomplish the servoing behavior. This is milestone 1.</P>
+
+<LI><P STYLE="margin-bottom: 0in"> Once done with this milestone, and
+you get the structure of the code, it will be easier to proceed with
+implementing the repulsion behavior. This should be milestone 2. This
+should not take more than half a week.</P>
+
+<LI><P STYLE="margin-bottom: 0in"> The last 1.5 weeks should then be
+    devoted to finishing up the implementation and possibly adding on
+    to the simulation to get the extra credit points.</P>
+
+</BODY>
+</HTML>
