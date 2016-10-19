@@ -68,7 +68,7 @@ public:
     Get a 1x2 vector representing the differential x, y attractive
       and repulsive fources.
    */
-  const std::vector<double> getDifferentialVector() const;
+  const std::vector<double> getDifferentialVector(double p_x, double p_y) const;
  
 protected:
   RigidBodySimulator *m_simulator;
