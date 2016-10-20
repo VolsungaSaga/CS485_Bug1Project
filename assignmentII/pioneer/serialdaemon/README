@@ -1,0 +1,15 @@
+serialdaemon.c
+
+Allows you to connect a socket with a serial port, for languages (such 
+as Java) which do not play nicely with serial ports but which talk to 
+sockets just fine.
+
+serialdaemon_win32.zip
+
+Recompilation of serialdaemon.c for Windows, including executable.
+
+SocketDaemon.java
+
+Essentially a simple router which listens in on a local socket and 
+forwards all the traffic to a remote machine.  We used this on panda to 
+enable an outside computer to talk to the socket on a local flockbot.
