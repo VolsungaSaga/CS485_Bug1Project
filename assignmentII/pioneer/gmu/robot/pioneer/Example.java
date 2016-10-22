@@ -29,17 +29,28 @@ public class Example
             usage();
 
         PioneerRobot robot = new PioneerRobot();
+        MedianFilter f = new MedianFilter(robot);
+        
         robot.setVerbose(true);
-        robot.connect("10.0.0.133", Integer.parseInt(args[0]));
-        robot.sonar( false );
+        robot.connect("127.0.0.1", Integer.parseInt(args[0]));
+        robot.sonar( true );
         robot.enable( true );
-        robot.setVerbose(false); 
+        robot.setVerbose(true); 
+        try {
+        	System.out.println("Sleeping");
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+        f.getFilteredSonarValues();
         
         robot.vel2((byte)10, (byte)10); 
         try { 
             Thread.sleep(5000);
             } catch (Exception e) {}
-
+        
         robot.e_stop(); 
         robot.enable(false); 
         System.out.println(robot.getXPos()); 
