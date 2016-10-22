@@ -67,12 +67,12 @@ RigidBodyMove RigidBodyPlanner::ConfigurationMove(void)
     std::vector<double> differentialVector(3);
     std::vector<double> moveAccumulator(3);
 
-    const double* verticies = m_simulator->GetRobotVertices();
+    const double* vertices = m_simulator->GetRobotVertices();
     std::cout << "Num vert " << m_simulator->GetNrRobotVertices() << std::endl;
     for (int i = 0; i < 2 * m_simulator->GetNrRobotVertices(); i+=2)
     {
-      controlX = *(verticies + i);
-      controlY = *(verticies + (i + 1));
+      controlX = *(vertices + i);
+      controlY = *(vertices + (i + 1));
       differentialVector = getDifferentialVector(controlX, controlY);
       
       std::cout << "control x_i" << controlX << i << std::endl; 
@@ -80,7 +80,7 @@ RigidBodyMove RigidBodyPlanner::ConfigurationMove(void)
       theta = m_simulator->GetRobotTheta();
   
       worldSpaceToConfigSpace(configSpace, controlX, controlY, theta, 
-        differentialVector[0], differentialVector[1], 0.1, 0.1);    
+        differentialVector[0], differentialVector[1], 0.1, 0.01);    
 
       move.m_dx += configSpace[0];
       move.m_dy += configSpace[1];
