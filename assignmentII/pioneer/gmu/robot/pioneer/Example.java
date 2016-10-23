@@ -17,6 +17,9 @@ package gmu.robot.pioneer;
 public class Example
     {
 
+	public static final int GOAL_X = 15;
+	public static final int GOAL_Y = 0;
+	
     public static void usage()
         {
         System.out.println("Usage: Example <port>");
@@ -43,29 +46,41 @@ public class Example
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-        f.getFilteredSonarValues();
+        //robot.vel2((byte)10, (byte)10);
+        robot.seto();
+        double[] sensors = f.getFilteredSonarValues();
         
-        robot.vel2((byte)10, (byte)10); 
+        double radTheta = getHeading();
+        short degrees = (short)Math.floor(Math.toDegrees(radTheta));
+          
+        //if I'm not at goal
+        while ((robot.getXPos() != GOAL_X || robot.getYPos() != GOAL_Y) || 
+        		((Math.abs(GOAL_X - robot.getXPos()) < 1 ) ||
+        		((Math.abs(GOAL_Y - robot.getYPos())) < 1))) 
+        {
+        	robot.vel2((byte)10, (byte)10);
+        	System.out.println("------------------- ROBOT X " + robot.getXPos());
+        	System.out.println("------------------- ROBOT Y " + robot.getYPos());
+        }         
         try { 
             Thread.sleep(5000);
             } catch (Exception e) {}
-        
-        robot.e_stop(); 
+                robot.e_stop(); 
         robot.enable(false); 
         System.out.println(robot.getXPos()); 
         try { 
             Thread.sleep(2000); } catch (Exception e) {} 
-        //robot.resetOdometery(); 
-        System.out.println(robot.getXPos()); 
         
-        /* for( short i = 0 ; i < 10 ; i++ )
-           {
-           robot.sound(i);
-           robot.dhead( (short)(60 * (short)(2*(i%2)-1)) );
-           Thread.sleep(1000);
-           }
-        */
+        System.out.println(robot.getXPos()); 
+
         robot.disconnect();
         }
+    
+    /**
+     * @return theta that puts us inline with the goal
+     */
+    public static double getHeading() {
+    	return  Math.acos( GOAL_X / (Math.sqrt((GOAL_X * GOAL_X) + (GOAL_Y * GOAL_Y))) );
+    }
+    
     }
