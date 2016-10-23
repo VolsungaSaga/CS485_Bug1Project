@@ -19,7 +19,7 @@ const std::vector<double> RigidBodyPlanner::getDifferentialVector(double p_x, do
   x_att = p_x - m_simulator->GetGoalCenterX(); // x = goalx - goalx
   y_att = p_y - m_simulator->GetGoalCenterY(); // y = goaly - goaly
 
-  double delta = 0.1;
+  double repConst = 100;
 
   // these will hold the running sum
   double repulsiveX = 0.0001;
@@ -31,9 +31,15 @@ const std::vector<double> RigidBodyPlanner::getDifferentialVector(double p_x, do
     // get the closest point on the obsticle to this control point
     Point closest = m_simulator->ClosestPointOnObstacle(j, p_x, p_y);
 
-    // repulsive force is the sum over all obsticles and all points.
-    repulsiveX = repulsiveX + (1 / ( (closest.m_x - p_x) * (closest.m_x - p_x) * (closest.m_x - p_x)));
-    repulsiveY = repulsiveY + (1 / ((closest.m_y - p_y) * (closest.m_y - p_y) * (closest.m_y - p_y) ));
+    double x_dist = (closest.m_x - p_x);
+    double y_dist = (closest.m_y - p_y);
+    double magRep = std::sqrt((x_dist * x_dist) + (y_dist * y_dist));
+
+    double frepMag = repConst / (magRep * magRep);
+
+    repulsiveX += (x_dist / magRep) * frepMag;
+    repulsiveY += (y_dist / magRep) * frepMag;    
+     
   }
 
   std::cout << "Attractive x " << x_att << ", " << y_att << std::endl;
@@ -44,17 +50,6 @@ const std::vector<double> RigidBodyPlanner::getDifferentialVector(double p_x, do
   differential[0] = (x_att + repulsiveX);
   differential[1] = (y_att + repulsiveY);
 
-/*  if (differential[0] < delta)
-  {
-
-    differential[0] = x_att + (repulsiveX / 4);
-  }
-
-  if (differential[1] < delta)
-  {
-    differential[1] += y_att + (repulsiveY / 4);
-  }
-*/
   std::cout << "Differential x " << differential[0] << ", " << differential[1] << std::endl;
   
   // need to make a unit vector
