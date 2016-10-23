@@ -16,9 +16,10 @@ const std::vector<double> RigidBodyPlanner::getDifferentialVector(double p_x, do
   double x_att = 0;
   double y_att = 0;
 
-  x_att = p_x - m_simulator->GetGoalCenterX(); // x = robotx - goalx
-  y_att = p_y - m_simulator->GetGoalCenterY(); // y = roboty - goaly
-
+  //x_att = p_x - m_simulator->GetGoalCenterX(); // x = robotx - goalx
+  // y_att = p_y - m_simulator->GetGoalCenterY(); // y = roboty - goaly
+  x_att = m_simulator->GetGoalCenterX() - p_x;
+  y_att = m_simulator->GetGoalCenterY() - p_y;
   // these will hold the running sum
   double repulsiveX = 0;
   double repulsiveY = 0;
@@ -30,14 +31,14 @@ const std::vector<double> RigidBodyPlanner::getDifferentialVector(double p_x, do
     Point closest = m_simulator->ClosestPointOnObstacle(j, p_x, p_y);
 
     // repulsive force is the sum over all obsticles and all points.
-    repulsiveX = repulsiveX + (closest.m_x - p_x);
-    repulsiveY = repulsiveY + (closest.m_y - p_y);
+    repulsiveX = repulsiveX + (1/((closest.m_x - p_x)*(closest.m_x - p_x)));
+    repulsiveY = repulsiveY + (1/((closest.m_x - p_x)*(closest.m_x - p_x)));
   }
 
   // since it's only length two it's okay to return a copy.
   std::vector<double> differential(2);
-  differential[0] = (x_att + repulsiveX);
-  differential[1] = (y_att + repulsiveY);
+  differential[0] = (x_att - repulsiveX);
+  differential[1] = (y_att - repulsiveY);
 
   // need to make a unit vector
   double magnitude = std::sqrt((differential[0] * differential[0]) + 
@@ -80,7 +81,7 @@ RigidBodyMove RigidBodyPlanner::ConfigurationMove(void)
       theta = m_simulator->GetRobotTheta();
   
       worldSpaceToConfigSpace(configSpace, controlX, controlY, theta, 
-        differentialVector[0], differentialVector[1], 0.1, 0.1);    
+        differentialVector[0], differentialVector[1], 0.01, 0.01);    
 
       move.m_dx += configSpace[0];
       move.m_dy += configSpace[1];
@@ -95,9 +96,9 @@ RigidBodyMove RigidBodyPlanner::ConfigurationMove(void)
 //    std::cout << "Differential x" << differentialVector[0] << std::endl;
 //    std::cout << "Differential y" << differentialVector[1] << std::endl;
 
-    move.m_dx = move.m_dx * -1;
-    move.m_dy = move.m_dy * -1;
-    move.m_dtheta = move.m_dtheta * -1;
+    move.m_dx = move.m_dx; //* -1;
+    move.m_dy = move.m_dy; //* -1;
+    move.m_dtheta = move.m_dtheta; //* -1;
     return move;
 }
 
