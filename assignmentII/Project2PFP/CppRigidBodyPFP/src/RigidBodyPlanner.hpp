@@ -50,11 +50,11 @@ public:
         p_retVector[1] = (p_scaleXY * DUy);
         
         // first part of the matrix i.e. -X_j * sin(theta) - Y_j * cos(theta) * DUx
-        double accumulator = -p_xControl * std::sin(p_theta) - p_yControl * std::cos(p_theta) * DUx;
+        double accumulator = (((-1 * p_xControl) * std::sin(p_theta)) - (p_yControl * std::cos(p_theta))) * DUx;
 
         // accumulator now has (-X_j * sin(theta) - Y_j * cos(theta) * DUx) +
         //                     (X_j * cos(theta) - Y_j * sin(theta) * DUy)
-        accumulator += p_xControl * std::cos(p_theta) - p_yControl * std::sin(p_theta) * DUy;
+        accumulator += ((p_xControl * std::cos(p_theta)) - (p_yControl * std::sin(p_theta))) * DUy;
         p_retVector[2] = (p_scaleTheta * accumulator);
     }
      
