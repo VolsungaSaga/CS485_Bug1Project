@@ -17,8 +17,8 @@ package gmu.robot.pioneer;
 public class Example
     {
 
-	public static final int GOAL_X = 15;
-	public static final int GOAL_Y = 0;
+	public static int GOAL_X = 300;
+	public static int GOAL_Y = 300;
 	
     public static void usage()
         {
@@ -28,6 +28,7 @@ public class Example
 
     public static final void main( String[] args ) throws Exception
         {
+//        double radTheta1 = getHeading();
         if (args.length<1)
             usage();
 
@@ -39,6 +40,7 @@ public class Example
         robot.sonar( true );
         robot.enable( true );
         robot.setVerbose(true); 
+        
         try {
         	System.out.println("Sleeping");
 			Thread.sleep(10000);
@@ -46,22 +48,50 @@ public class Example
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        //robot.vel2((byte)10, (byte)10);
         robot.seto();
         double[] sensors = f.getFilteredSonarValues();
         
-        double radTheta = getHeading();
-        short degrees = (short)Math.floor(Math.toDegrees(radTheta));
-          
+        double radTheta = getHeadingFromZero();
+    	double i = 3;
+    	double j = 3;
+        
         //if I'm not at goal
-        while ((robot.getXPos() != GOAL_X || robot.getYPos() != GOAL_Y) || 
-        		((Math.abs(GOAL_X - robot.getXPos()) < 1 ) ||
-        		((Math.abs(GOAL_Y - robot.getYPos())) < 1))) 
+        while (((Math.abs(GOAL_X - robot.getXPos()) > 50) ||
+        		((Math.abs(GOAL_Y - robot.getYPos())) > 50))) 
         {
-        	robot.vel2((byte)10, (byte)10);
+        	if ((robot.getOrientation() - radTheta) > 0.1) {
+        		i += 0.0001;
+        		j -= 0.0001;
+        	} else if ((robot.getOrientation() - radTheta) < -0.1) {
+        		i -= 0.0001;
+        		j += 0.0001;
+        	} else {
+        		System.out.println("******** Hit else statement ***********");
+        		i = 3;
+        		j = 3;
+        		
+        		if ((Math.abs(GOAL_X - robot.getXPos()) < 50) || 
+        				(Math.abs(GOAL_Y - robot.getYPos()) < 50)) {
+        			System.out.println("************************* HIT IF STATEMENT");
+        			System.out.println("************************* HIT IF STATEMENT");
+        			System.out.println("************************* HIT IF STATEMENT");
+        			System.out.println("************************* HIT IF STATEMENT");
+        			radTheta = getHeadingFromRandomFrickenPoint(robot);
+        		} 
+        	}
+        	
+   			robot.vel2((byte)i, (byte)j);
+    		Thread.sleep(1000);
+    		
+   			System.out.println("-----------------------sRad theta " + radTheta);
         	System.out.println("------------------- ROBOT X " + robot.getXPos());
         	System.out.println("------------------- ROBOT Y " + robot.getYPos());
-        }         
+        	System.out.println("------------------- ROBOT theta " + robot.getOrientation());
+        }
+      System.out.println("**************************** Broke out of while ******************************");
+      System.out.println("**************************** Broke out of while ******************************");
+      System.out.println("**************************** Broke out of while ******************************");
+      System.out.println("**************************** Broke out of while ******************************");
         try { 
             Thread.sleep(5000);
             } catch (Exception e) {}
@@ -79,8 +109,25 @@ public class Example
     /**
      * @return theta that puts us inline with the goal
      */
-    public static double getHeading() {
-    	return  Math.acos( GOAL_X / (Math.sqrt((GOAL_X * GOAL_X) + (GOAL_Y * GOAL_Y))) );
+    public static double getHeadingFromZero() {
+    	double x_rad = Math.acos( GOAL_X / (Math.sqrt((GOAL_X * GOAL_X) + (GOAL_Y * GOAL_Y))) );
+    	double y_rad = Math.asin( GOAL_Y / (Math.sqrt((GOAL_X * GOAL_X) + (GOAL_Y * GOAL_Y))) );
+    	if (GOAL_X > 0 && GOAL_Y > 0) {
+    		return  x_rad;
+    	} else if (GOAL_X > 0 && GOAL_Y < 0) {
+    		return y_rad;
+    	} else if (GOAL_X < 0 && GOAL_Y > 0) {
+    		return x_rad;
+    	} else {
+    		return y_rad;
+    	}
+    }
+    
+    public static double getHeadingFromRandomFrickenPoint(PioneerRobot robot) {   	
+    	double vecX = GOAL_X - robot.getXPos();
+    	double vecY = GOAL_Y - robot.getYPos();
+    	
+    	return Math.atan(vecY / vecX);
     }
     
     }
