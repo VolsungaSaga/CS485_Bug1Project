@@ -26,6 +26,13 @@ public class TwoDVector {
 		return sumVector;
 	}
 	
+	//Given a vector and a scalar, returns a new scalar multiplied vector.
+	public static TwoDVector scalarMult(TwoDVector vector, double scalar){
+		TwoDVector productVector = new TwoDVector(vector.getX()*scalar, vector.getY()*scalar);
+		return productVector;
+		
+	}
+	
 	
 	
 	//Returns a new, normalized version of the given vector. Non-destructive! 
@@ -42,6 +49,13 @@ public class TwoDVector {
 	public static double magnitude(TwoDVector vector){
 		
 		return Math.sqrt((vector.getX() * vector.getX()) + (vector.getY() * vector.getY()));
+		
+	}
+	
+	public String toString(){
+		
+		String vectorString = String.format("{%.2f, %.2f}", this.getX(), this.getY());
+		return vectorString;
 		
 	}
 	
