@@ -19,7 +19,7 @@ const std::vector<double> RigidBodyPlanner::getDifferentialVector(double p_x, do
   x_att = p_x - m_simulator->GetGoalCenterX(); // x = goalx - goalx
   y_att = p_y - m_simulator->GetGoalCenterY(); // y = goaly - goaly
 
-  double repConst = 100;
+  double repConst = 50;
 
   // these will hold the running sum
   double repulsiveX = 0.0001;
