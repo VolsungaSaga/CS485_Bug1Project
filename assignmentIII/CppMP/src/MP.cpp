@@ -33,6 +33,44 @@ void MotionPlanner::ExtendTree(const int    vid,
 			       const double sto[])
 {
 //your code
+
+  //First, check if the end state is acceptable.
+  m_simulator->SetRobotState(sto);
+  //If end state unacceptable, return empty-handed, momentarily defeated.
+  if(!m_simulator->IsValidState()){
+    return;
+  }
+
+  
+  double[] vidState = m_vertices[vid].m_state;
+
+  double[] line = {sto[0] - vidState[0], sto[1] - vidState[1]};
+  double magnitudeLine = getMagnitude(line);
+  int numStepsOnLine = Math.floor(magnitudeLine/(m_simulator->GetDistOneStep()));
+
+  //Iterate along the line, checking each of our steps for a misstep, as it were. Missteps
+  // will have us fail completely, but that's okay.
+  for(int i = 1; i <= numStepsOnLine; i++){
+    m_simulator->SetRobotState(IthStepOnLine(vidState,sto,i));
+    if(!m_simulator->IsValidState()){
+      return;
+    }
+
+  }
+
+  //After iterating along the line, we're reasonably certain that sto is a good state.
+
+  Vertex newVertex = new Vertex();
+  newVertex->m_parent = vid;
+  newVertex->m_state = sto;
+  newVertex->m_type = 0; //Note: Fix this, should be 2 if in goal region.
+  newVertex->m_nchildren = 0;
+
+  AddVertex(&newVertex);
+  
+
+
+  
 }
 
 void MotionPlanner::ExtendRandom(void)
@@ -104,3 +142,42 @@ void MotionPlanner::GetPathFromInitToGoal(std::vector<int> *path) const
     for(int i = rpath.size() - 1; i >= 0; --i)
 	path->push_back(rpath[i]);
 }
+
+//Returns the point at the ith step on the line between config1 (a leaf of our tree) and config2 (a sample configuration), given
+// a certain step size.
+double[] MotionPlanner::IthStepOnLine(double[] config1, double[] config2, i){
+  double x_config1 = config1[0];
+  double y_config1 = config1[1];
+
+  double x_config2 = config2[0];
+  double y_config2 = config2[0];
+  
+  double stepSize = m_simulator->GetDistOneStep();
+  double magnitude = getMagnitude(config1[0] - config2[0], config1[1] - config2[1]);
+
+  //The x value of the point at the ith step on the line between config1 and config2 =
+  // (The x val of a vector of this step size) + (displacement from origin_x to config1_x)
+  //It is naturally the same for the y values.
+  
+  double x_iStep = ((stepSize * i)/ magnitude) * (x_config2 - x_config1) + x_config1;
+  double y_iStep = ((stepSize * i)/ magnitude) * (y_config2 - y_config1) + y_config1;
+
+  double[] iStep = {x_iStep, y_iStep};
+  return iStep;
+}
+
+
+//Calculates the magnitude of the given vector.
+double MotionPlanner::getMagnitude(double x, double y){
+
+  return sqrt((x * x)+(y * y));
+}
+
+//Calculates magnitude of a double array vector.
+
+double MotionPlanner::getMagnitude(double[] vector){
+
+  return sqrt((vector[0] * vector[0]) + (vector[1] * vector[1]));
+
+    }
+
