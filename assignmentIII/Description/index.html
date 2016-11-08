@@ -1,0 +1,189 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="LibreOffice 3.6  (Linux)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGED" CONTENT="20140402;12010100">
+	<META NAME="CHANGEDBY" CONTENT="Amarda ">
+	<META NAME="CHANGEDBY" CONTENT="Amarda ">
+	<META NAME="CHANGEDBY" CONTENT="Amarda ">
+	<META NAME="CHANGEDBY" CONTENT="Amarda ">
+	<STYLE TYPE="text/css">
+	<!--
+		H1 { margin-left: 0.21in; margin-right: 0.21in; color: #000000; font-family: "Geneva", "Arial", "Helvetica", sans-serif; text-align: center }
+		P { margin-left: 0.21in; margin-right: 0.21in; color: #000000; font-family: "Geneva", "Arial", "Helvetica", sans-serif }
+		H2 { margin-left: 0.21in; margin-right: 0.21in; color: #000000; font-family: "Geneva", "Arial", "Helvetica", sans-serif }
+		A:link { color: #1a41a8 }
+		TT.cjk { font-family: "DejaVu Sans", monospace }
+		A:visited { color: #1a41a8 }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" TEXT="#000000" LINK="#1a41a8" VLINK="#1a41a8" BGCOLOR="#ffffff" DIR="LTR">
+<H1>Project 3: Sampling-Based Motion Planning</H1>
+<P ALIGN=CENTER><B>Due Date: Nov-16-2016</B> <B>@ 11:59PM</B> 
+</P>
+<P>In this project, you will implement several sampling-based motion
+planners for a simple point robot operating in a 2D workspace. You
+will implement the following functions that will gradually walk you
+towards implementing EST, RRT, and your tree-based planner of choice.
+Notice that for the purpose of this assignment, the word state is
+used interchangeably for configuration. Since you are dealing with a
+point robot in a 2D workspace, the state/configuration is only (x,
+y).</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><B>ExtendTree(vid, sto)</B>
+	(<B>40pts</B>) 
+	</P>
+	<UL>
+		<LI><P STYLE="margin-bottom: 0in">Function should extend the tree
+		from the vertex with index <TT CLASS="western">vid</TT> to the
+		state <TT CLASS="western">sto</TT> 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in">Each step should be small, i.e.,
+		as specified by <TT CLASS="western">distOneStep</TT> 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in">Each valid intermediate step
+		should be added to the tree 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in">Function should stop if an
+		invalid intermediate step is encountered or if the goal is reached 
+		</P>
+	</UL>
+	<LI><P STYLE="margin-bottom: 0in"><B>ExtendRandom()</B> (<B>15pts</B>)
+		</P>
+	<UL>
+		<LI><P STYLE="margin-bottom: 0in">Function should select the random
+		state <TT CLASS="western">sto</TT> from the goal region with small
+		probability <TT CLASS="western">p = 0.1</TT> and from the entire
+		bounding box with probability <TT CLASS="western">1 - p</TT> (using
+		the <TT CLASS="western">SampleState</TT> function) 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in">Function should select the vertex
+		<TT CLASS="western">vid</TT> uniformly at random from all the tree
+		vertices 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in">After selections are made,
+		function calls <TT CLASS="western">ExtendTree(vid, sto)</TT> 
+		</P>
+	</UL>
+	<LI><P STYLE="margin-bottom: 0in"><B>ExtendRRT()</B> (<B>20pts</B>) 
+	</P>
+	<UL>
+		<LI><P STYLE="margin-bottom: 0in">Function should select the random
+		state <TT CLASS="western">sto</TT> as described in <TT CLASS="western">ExtendRandom</TT>
+				</P>
+		<LI><P STYLE="margin-bottom: 0in">Function should select the vertex
+		<TT CLASS="western">vid</TT> as the closest tree vertex to <TT CLASS="western">sto</TT>
+				</P>
+		<LI><P STYLE="margin-bottom: 0in">After selections are made,
+		function calls <TT CLASS="western">ExtendTree(vid, sto)</TT> 
+		</P>
+	</UL>
+	<LI><P STYLE="margin-bottom: 0in"><B>ExtendEST()</B> (<B>15pts</B>) 
+	</P>
+	<UL>
+		<LI><P STYLE="margin-bottom: 0in">Function should select the random
+		state <TT CLASS="western">sto</TT> as described in <TT CLASS="western">ExtendRandom</TT>
+				</P>
+		<LI><P STYLE="margin-bottom: 0in">Function should select the vertex
+		<TT CLASS="western">vid</TT> with probability proportional to a
+		weight defined in terms of the number of children coming out of
+		vertex <TT CLASS="western">vid</TT> 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in">After selections are made,
+		function calls <TT CLASS="western">ExtendTree(vid, sto)</TT> 
+		</P>
+	</UL>
+	<LI><P STYLE="margin-bottom: 0in"><B>ExtendMyApproach()</B> (<B>20pts</B>)
+		</P>
+	<UL>
+		<LI><P STYLE="margin-bottom: 0in">Your approach should show some
+		originality 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in">It should at least outperform
+		<TT CLASS="western">ExtendRandom</TT> and <TT CLASS="western">ExtendEST</TT>
+				</P>
+	</UL>
+	<LI><P STYLE="margin-bottom: 0in"><B>Written Report with your
+	Approach Description and Experimental Results</B> 
+	</P>
+	<UL>
+		<LI><P STYLE="margin-bottom: 0in">If not properly done, up to
+		<B>-15pts</B> will be taken off 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in">Report should include high-level
+		description of your approach as well as pseudo-code 
+		</P>
+		<LI><P STYLE="margin-bottom: 0in">When describing your approach,
+		you should highlight its advantages and disadvantages over the
+		other algorithms 
+		</P>
+		<LI><P>Experimental results will be obtained by running each method
+		on each provided scene for at least ten times. If a run takes more
+		than ten minutes, you should stop it. You will then present in a
+		table (for each combination of method and scene) the average time,
+		mean time, and the percentage of solutions 
+		</P>
+	</UL>
+</UL>
+<P>Environment consists of a robot, a goal, and obstacles (all
+represented as circles). Graphical interface supports the dynamic
+addition and displacement of obstacles and goal. A new obstacle can
+be added at any time by pressing down the left-button of the mouse.
+Each obstacle and the goal can be moved around by clicking inside
+them and holding the left-button down while moving the mouse. User
+can change the radius of each obstacle and the goal by first pressing
+the key 'r' and then clicking inside an obstacle/goal, holding the
+left-button down while moving the mouse. Pressing 'r' again toggles
+between editing radius or moving the obstacles and the goal. 
+</P>
+<P><B>First edit the scene and then run the planner. Do not make
+changes to the scene once the planner has started. Also do not change
+the initial position of the robot via the graphical interface, but
+use instead the input text file</B>. 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><B>ExtendRandom can be run by
+	pressing 1</B> 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>ExtendRRT can be run by
+	pressing 2</B> 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in"><B>ExtendEST can be run by
+	pressing 3</B> 
+	</P>
+	<LI><P><B>ExtendMyApproach can be run by pressing 4</B> 
+	</P>
+</UL>
+<P>Pressing 'p' toggles between running and stopping the planner. 
+</P>
+
+
+<H2><A NAME="sec_compiling1"></A>Support Code: C++</H2>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in">Support code can be found in CppMP
+		</P>
+	<LI><P STYLE="margin-bottom: 0in">To compile the code inside each
+	directory use similar steps as in previous projects.
+	</P>
+	<LI><P>The program can be run on Windows as
+	<B>bin\Debug\Planner.exe Scene1.txt</B> and on Linux/MacOS as
+	<B>bin/Planner Scene1.txt</B> where the argument is the name of the
+	input file. Five scenes have been provided.
+	</P>
+</UL>
+
+<H2><A NAME="sec_compiling11"></A>How to submit</H2>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in">Please submit via blackboard a
+	zipped directory named: LastNames_Project3_CS485.zip 
+	</P>
+	<LI><P>LastNames allows you to specify a more than one person team. 
+	</P>
+</UL>
+
+</BODY>
+</HTML>
