@@ -3,7 +3,7 @@
 #include "MyTimer.hpp"
 #include <cstring>
 
-MotionPlanner::MotionPlanner(Simulator * const simulator)
+MotionPlanner::MotionPlanner(Simulator * const simulator)  
 {
     m_simulator = simulator;   
 
@@ -32,7 +32,7 @@ MotionPlanner::~MotionPlanner(void)
 void MotionPlanner::ExtendTree(const int    vid, 
 			       const double sto[])
 {
-//your code
+    
 }
 
 void MotionPlanner::ExtendRandom(void)
@@ -40,8 +40,17 @@ void MotionPlanner::ExtendRandom(void)
     Clock clk;
     StartTime(&clk);
 
-//your code
+    double samples[2];
+    m_simulator->SampleState(samples);
+
+    long max = m_vertices.size();
     
+    long randomVertex = 0;
+    if (max != 0)
+        randomVertex = ((double) random()) / ((double) max);
+
+    ExtendTree(randomVertex, samples);
+
     m_totalSolveTime += ElapsedTime(&clk);
 }
 
@@ -49,8 +58,8 @@ void MotionPlanner::ExtendRRT(void)
 {
     Clock clk;
     StartTime(&clk);
- 
-//your code
+
+     
     
     m_totalSolveTime += ElapsedTime(&clk);
 }
@@ -61,7 +70,6 @@ void MotionPlanner::ExtendEST(void)
     Clock clk;
     StartTime(&clk);
 
-//your code    
     m_totalSolveTime += ElapsedTime(&clk);
 }
 
