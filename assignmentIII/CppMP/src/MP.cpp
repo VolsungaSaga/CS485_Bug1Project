@@ -2,6 +2,7 @@
 #include "PseudoRandom.hpp"
 #include "MyTimer.hpp"
 #include <cstring>
+#include <cmath>
 
 MotionPlanner::MotionPlanner(Simulator * const simulator)
 {
@@ -29,12 +30,11 @@ MotionPlanner::~MotionPlanner(void)
 }
 
 
+//Our code goes here
 void MotionPlanner::ExtendTree(const int    vid, 
 			       const double sto[])
 {
-//your code
-
-  //First, check if the end state is acceptable.
+//First, check if the end state is acceptable.
   m_simulator->SetRobotState(sto);
   //If end state unacceptable, return empty-handed, momentarily defeated.
   if(!m_simulator->IsValidState()){
@@ -67,18 +67,12 @@ void MotionPlanner::ExtendTree(const int    vid,
   newVertex->m_nchildren = 0;
 
   MotionPlanner::AddVertex(&newVertex);
-  
-
-
-  
 }
 
 void MotionPlanner::ExtendRandom(void)
 {
     Clock clk;
     StartTime(&clk);
-
-//your code
     
     m_totalSolveTime += ElapsedTime(&clk);
 }
@@ -87,19 +81,61 @@ void MotionPlanner::ExtendRRT(void)
 {
     Clock clk;
     StartTime(&clk);
- 
-//your code
-    
+    //Here, we check to see how close our robot is to our goal's radius
+    double goalWRadiusX = m_simulator->GetGoalCenterX()+m_simulator->GetRobotRadius();
+    double goalWRadiusY = m_simulator->GetGoalCenterY()+m_simulator->GetRobotRadius();
+    double sto[2]; // This is our step val;
+    sto[0] = PseudoRandomUniformRead(0,1);
+    sto[1] = PseudoRandomUniformRead(0,1);   
+
+    int i = 0; // This is our check val
+    while ((goalWRadiusX < m_vertices[i]) && (goalWRadiusY < m_vertices[i])){
+        ExtendTree(i,sto);
+        if (m_vertices[i+1] == NULL) {
+           if (goalWRadiusX > 0)
+               sto[0] = (m_vertices[i])+PseudoRandomUniformRead(0,1);
+           else if (goalWRadiusX < 0)
+               sto[0] = (m_vertices[i])-PseudoRandomUniformRead(0,1);
+           if (goalWRadiusY > 0)
+               sto[1] = (m_vertices[i])+PseudoRandomUniformRead(0,1);
+           else if (goalWRadiusY < 0)
+               sto[1] = (m_vertices[i])-PseudoRandomUniformRead(0,1);
+        }
+        else {
+           i++;
+        }
+    }
+    GetPathFromInitToGoal(m_vertices);
     m_totalSolveTime += ElapsedTime(&clk);
 }
 
-
+//q == tree configuration
+//1/(1+Deg(q)) is our weight; also our probablility
+//Deg(q) == numbers of neighbors near our q
 void MotionPlanner::ExtendEST(void)
 {
     Clock clk;
     StartTime(&clk);
+    //IMPORTANT NOTE: NEEDS A LOTTA WORK
+    //Here, we check to see how close our robot is to our goal's radius
+    double goalWRadiusX = m_simulator->GetGoalCenterX()+m_simulator->GetRobotRadius();
+    double goalWRadiusY = m_simulator->GetGoalCenterY()+m_simulator->GetRobotRadius();
+    double sto[2]; // This is our step val;
+    sto[0] = PseudoRandomUniformRead(0,1);
+    sto[1] = PseudoRandomUniformRead(0,1);
 
-//your code    
+    int i = 0; // This is our check val
+    int e = 1;
+    while ((goalWRadiusX < m_vertices[i]) && (goalWRadiusY < m_vertices[i])){
+        sto[0] = ((1/(1+i))/(e*PseudoRandomUniformRead(0,1)));
+        sto[1] = ((1/(1+i))/(e*PseudoRandomUniformRead(0,1)));
+        ExtendTree(i,sto);
+        if (m_vertices[i+1] != NULL) {
+            i++;
+        }
+        e++; 
+    }   
+    
     m_totalSolveTime += ElapsedTime(&clk);
 }
 
@@ -142,42 +178,3 @@ void MotionPlanner::GetPathFromInitToGoal(std::vector<int> *path) const
     for(int i = rpath.size() - 1; i >= 0; --i)
 	path->push_back(rpath[i]);
 }
-
-//Returns the point at the ith step on the line between config1 (a leaf of our tree) and config2 (a sample configuration), given
-// a certain step size.
-double[] MotionPlanner::IthStepOnLine(double[] config1, double[] config2, i){
-  double x_config1 = config1[0];
-  double y_config1 = config1[1];
-
-  double x_config2 = config2[0];
-  double y_config2 = config2[0];
-  
-  double stepSize = m_simulator->GetDistOneStep();
-  double magnitude = getMagnitude(config1[0] - config2[0], config1[1] - config2[1]);
-
-  //The x value of the point at the ith step on the line between config1 and config2 =
-  // (The x val of a vector of this step size) + (displacement from origin_x to config1_x)
-  //It is naturally the same for the y values.
-  
-  double x_iStep = ((stepSize * i)/ magnitude) * (x_config2 - x_config1) + x_config1;
-  double y_iStep = ((stepSize * i)/ magnitude) * (y_config2 - y_config1) + y_config1;
-
-  double[] iStep = {x_iStep, y_iStep};
-  return iStep;
-}
-
-
-//Calculates the magnitude of the given vector.
-double MotionPlanner::getMagnitude(double x, double y){
-
-  return sqrt((x * x)+(y * y));
-}
-
-//Calculates magnitude of a double array vector.
-
-double MotionPlanner::getMagnitude(double[] vector){
-
-  return sqrt((vector[0] * vector[0]) + (vector[1] * vector[1]));
-
-    }
-

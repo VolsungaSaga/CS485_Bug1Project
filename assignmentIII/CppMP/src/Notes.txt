@@ -1,0 +1,13 @@
+First notes:
+
+Things we have:
+-Simulator (has a lot of useful methods for us); asks us where our goal is,
+    where our robot is, where are we going, have we reached our state, etc.
+-Motion Planner looks at our configuration space; however, it also asks us to 
+    find a path from our initial point to where we want to go
+-Three Rules for ExtendTree:
+    +If we sampling the vertices, we need to make sure they aren't in any objects
+    +If we're sampling the edges, we need to make sure they aren't also in any objects
+
+FIRST IDEA:
+    +
