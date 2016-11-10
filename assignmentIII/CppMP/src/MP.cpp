@@ -66,7 +66,7 @@ void MotionPlanner::ExtendTree(const int    vid,
   newVertex->m_type = 0; //Note: Fix this, should be 2 if in goal region.
   newVertex->m_nchildren = 0;
 
-  AddVertex(&newVertex);
+  MotionPlanner::AddVertex(&newVertex);
   
 
 
