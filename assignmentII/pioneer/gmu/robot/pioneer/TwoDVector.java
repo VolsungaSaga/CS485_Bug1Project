@@ -26,6 +26,30 @@ public class TwoDVector {
 		return sumVector;
 	}
 	
+	public static TwoDVector vectorSubtract(TwoDVector firstVector, TwoDVector secondVector){
+		
+		TwoDVector diffVector = new TwoDVector((firstVector.getX() - secondVector.getX()),
+												(firstVector.getY() - secondVector.getY()));
+		return diffVector;	
+		
+		
+	}
+	
+	//Given a vector and a scalar, returns a new scalar multiplied vector.
+	public static TwoDVector scalarMult(TwoDVector vector, double scalar){
+		TwoDVector productVector = new TwoDVector(vector.getX()*scalar, vector.getY()*scalar);
+		return productVector;
+		
+	}
+	
+	public static TwoDVector rotate(double theta, TwoDVector vector){
+		double newVectorX = vector.getX() * Math.cos(theta) - vector.getY() * Math.sin(theta);
+		double newVectorY = vector.getX() * Math.sin(theta) + vector.getY() * Math.cos(theta);
+		TwoDVector newVector = new TwoDVector(newVectorX, newVectorY);
+		return newVector;
+		
+	}
+	
 	
 	
 	//Returns a new, normalized version of the given vector. Non-destructive! 
@@ -42,6 +66,14 @@ public class TwoDVector {
 	public static double magnitude(TwoDVector vector){
 		
 		return Math.sqrt((vector.getX() * vector.getX()) + (vector.getY() * vector.getY()));
+		
+	}
+	
+	public String toString(){
+		
+		StringBuilder vectorString = new StringBuilder(); 
+		vectorString.append("{"+ this.getX() + ", " + this.getY() + "}");
+		return vectorString.toString();
 		
 	}
 	
