@@ -39,12 +39,20 @@ void MotionPlanner::ExtendTree(const int    vid,
   //Acceptable end states are not colliding with an obstacle AND
   // are a certain minimum distance (we'll try robot radius) from vid.
   m_simulator->SetRobotState(sto);
-  double distanceX = sto[0] - m_vertices[vid]->m_state[0];
-  double distanceY = sto[1] - m_vertices[vid]->m_state[1];
-  double distance = getMagnitude(distanceX, distanceY);
+
+  //To avoid over using areas that are already explored, I shall filter out
+  // sample points 
+  for(int i = 0; i < m_vertices.size(); i++){
+    double distanceX = sto[0] - m_vertices[i]->m_state[0];
+    double distanceY = sto[1] - m_vertices[i]->m_state[1];
+    double distance = getMagnitude(distanceX, distanceY);
+    if(distance < m_simulator->GetRobotRadius())
+      return;
+
+  }
   
   //If end state unacceptable, return empty-handed, momentarily defeated.
-  if(!m_simulator->IsValidState() && (distance < m_simulator->GetRobotRadius())){
+  if(!m_simulator->IsValidState()){
     return;
   }
 
@@ -76,7 +84,7 @@ void MotionPlanner::ExtendTree(const int    vid,
   newVertex->m_state[0] = sto[0];
   newVertex->m_state[1] = sto[1];
   if(m_simulator->HasRobotReachedGoal()){
-    newVertex->m_type = 1;
+    newVertex->m_type = 2;
   }
   else{
     newVertex->m_type = 0; //Note: Fix this, should be 2 if in goal region.
