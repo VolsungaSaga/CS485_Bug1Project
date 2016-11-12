@@ -35,8 +35,8 @@ public:
     void ExtendEST(void);
 
     void ExtendMyApproach(void);
-    
-        
+  
+  
 protected:
     bool IsProblemSolved(void)
     {
@@ -49,6 +49,12 @@ protected:
 
     void ExtendTree(const int    vid,
 		    const double sto[]);
+
+
+  void IthStepOnLine(const double config1[], const double config2[], int i, double stepSize, double* iStepVector);
+
+  double getMagnitude(double x, double y);
+  double getMagnitude(double vector[]);
     
     Simulator            *m_simulator;
     std::vector<Vertex *> m_vertices;
