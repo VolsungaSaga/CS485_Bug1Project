@@ -36,9 +36,15 @@ void MotionPlanner::ExtendTree(const int    vid,
 //your code
 
   //First, check if the end state is acceptable.
+  //Acceptable end states are not colliding with an obstacle AND
+  // are a certain minimum distance (we'll try robot radius) from vid.
   m_simulator->SetRobotState(sto);
+  double distanceX = sto[0] - m_vertices[vid]->m_state[0];
+  double distanceY = sto[1] - m_vertices[vid]->m_state[1];
+  double distance = getMagnitude(distanceX, distanceY);
+  
   //If end state unacceptable, return empty-handed, momentarily defeated.
-  if(!m_simulator->IsValidState()){
+  if(!m_simulator->IsValidState() && (distance < m_simulator->GetRobotRadius())){
     return;
   }
 
@@ -64,12 +70,17 @@ void MotionPlanner::ExtendTree(const int    vid,
   }
 
   //After iterating along the line, we're reasonably certain that sto is a good state.
-
+  m_simulator->SetRobotState(sto);
   Vertex* newVertex = new Vertex();
   newVertex->m_parent = vid;
   newVertex->m_state[0] = sto[0];
   newVertex->m_state[1] = sto[1];
-  newVertex->m_type = 0; //Note: Fix this, should be 2 if in goal region.
+  if(m_simulator->HasRobotReachedGoal()){
+    newVertex->m_type = 1;
+  }
+  else{
+    newVertex->m_type = 0; //Note: Fix this, should be 2 if in goal region.
+  }
   newVertex->m_nchildren = 0;
 
   MotionPlanner::AddVertex(newVertex);
@@ -180,9 +191,9 @@ void MotionPlanner::IthStepOnLine(const double config1[], const double config2[]
   double y_config1 = config1[1];
 
   double x_config2 = config2[0];
-  double y_config2 = config2[0];
+  double y_config2 = config2[1];
   
-  double stepSize = stepSize;
+  double stepSize = stepSizeParam;
   double magnitude = getMagnitude(config1[0] - config2[0], config1[1] - config2[1]);
 
   //The x value of the point at the ith step on the line between config1 and config2 =
