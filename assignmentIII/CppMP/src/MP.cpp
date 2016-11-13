@@ -3,6 +3,7 @@
 #include "MyTimer.hpp"
 #include <cstring>
 #include <cmath>
+#include <iostream>
 
 MotionPlanner::MotionPlanner(Simulator * const simulator)  
 {
@@ -33,8 +34,8 @@ MotionPlanner::~MotionPlanner(void)
 void MotionPlanner::ExtendTree(const int    vid, 
 			       const double sto[])
 {
-//your code
-
+  double robotX = m_vertices[vid]->m_state[0];
+  double robotY = m_vertices[vid]->m_state[1];
   //First, check if the end state is acceptable.
   //Acceptable end states are not colliding with an obstacle AND
   // are a certain minimum distance (we'll try robot radius) from vid.
@@ -47,16 +48,15 @@ void MotionPlanner::ExtendTree(const int    vid,
     double distanceY = sto[1] - m_vertices[i]->m_state[1];
     double distance = getMagnitude(distanceX, distanceY);
     if(distance < m_simulator->GetRobotRadius())
+    {
       return;
-
+    }
   }
-  
   //If end state unacceptable, return empty-handed, momentarily defeated.
   if(!m_simulator->IsValidState()){
     return;
   }
 
-  
   double vidState[2] = {0,0};
   vidState[0] = m_vertices[vid]->m_state[0];
   vidState[1] = m_vertices[vid]->m_state[1];
@@ -72,18 +72,18 @@ void MotionPlanner::ExtendTree(const int    vid,
     IthStepOnLine(vidState,sto,i, m_simulator->GetDistOneStep(), iStepVector);
     m_simulator->SetRobotState(iStepVector);
     if(!m_simulator->IsValidState()){
+      m_simulator->SetRobotCenter(robotX, robotY);
       return;
     }
 
   }
 
   //After iterating along the line, we're reasonably certain that sto is a good state.
-  m_simulator->SetRobotState(sto);
   Vertex* newVertex = new Vertex();
   newVertex->m_parent = vid;
   newVertex->m_state[0] = sto[0];
   newVertex->m_state[1] = sto[1];
-  if(m_simulator->HasRobotReachedGoal()){
+  if (m_simulator->HasRobotReachedGoal()){
     newVertex->m_type = 2;
   }
   else{
@@ -92,11 +92,7 @@ void MotionPlanner::ExtendTree(const int    vid,
   newVertex->m_nchildren = 0;
 
   MotionPlanner::AddVertex(newVertex);
-  
-
-
-  
-
+  m_simulator->SetRobotState(sto);
 }
 
 void MotionPlanner::ExtendRandom(void)
@@ -136,8 +132,33 @@ void MotionPlanner::ExtendRRT(void)
     Clock clk;
     StartTime(&clk);
 
-     
-    
+    // Fill up the sample bucket
+    double samples[2];
+    m_simulator->SampleState(samples);
+
+    // find the closest
+    int closestVid = 0;
+
+    // get the least distance from the samples
+    double smallestDist = std::sqrt( (samples[0]-m_vertices[0]->m_state[0])*(samples[0]-m_vertices[0]->m_state[0]) + 
+        (samples[1]-m_vertices[0]->m_state[1])*(samples[1]-m_vertices[0]->m_state[1]));
+
+    for(int i=0; i<m_vertices.size(); ++i)
+    {
+        double xVertex = m_vertices[i]->m_state[0];
+        double yVertex = m_vertices[i]->m_state[1];
+        double currDist = std::sqrt( (samples[0]-xVertex)*(samples[0]-xVertex) + (samples[1]-yVertex)*(samples[1]-yVertex) );
+
+        if(currDist < smallestDist)
+        {
+            closestVid = i;
+            smallestDist = currDist;
+        }
+    }
+
+    // pass the samples 
+    ExtendTree(closestVid,samples);
+         
     m_totalSolveTime += ElapsedTime(&clk);
 }
 
@@ -147,6 +168,36 @@ void MotionPlanner::ExtendEST(void)
     Clock clk;
     StartTime(&clk);
 
+    // sample "bucket"
+    double samples[2];
+    
+    // get a random sample
+    m_simulator->SampleState(samples);
+
+    double w = 0;
+    for (unsigned i = 0; i < m_vertices.size(); i++)
+    {
+        w += ( 1.0 / (m_vertices[i]->m_nchildren * m_vertices[i]->m_nchildren)) ;
+    }
+
+    // get a random value for weight 0 to w
+    double rand = PseudoRandomUniformReal(0, w);
+
+    int vid = 0;
+    w = 0;
+    for (unsigned i = 0; i < m_vertices.size(); ++i)
+    {
+        w += ( 1.0 / (m_vertices[i]->m_nchildren * m_vertices[i]->m_nchildren)) ;
+        if (w >= rand)
+        {
+            vid = i;
+            break;
+	}
+    }
+
+    // pass the samples to extend tree
+    ExtendTree(vid,samples);
+
     m_totalSolveTime += ElapsedTime(&clk);
 }
 
@@ -155,8 +206,7 @@ void MotionPlanner::ExtendMyApproach(void)
 {
     Clock clk;
     StartTime(&clk);
- 
-//your code
+
     
     m_totalSolveTime += ElapsedTime(&clk);
 }
