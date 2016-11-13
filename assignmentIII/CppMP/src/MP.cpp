@@ -144,8 +144,8 @@ void MotionPlanner::ExtendMyApproach(void)
 {
     Clock clk;
     StartTime(&clk);
- 
-    // Here, what we're trying to do is that we want
+
+     // Here, what we're trying to do is that we want
     // to first make a possible path that could stem from our decisions
     double vidGo[2] = {0,0};
     double vidGoal[2] = {0,0};
@@ -160,32 +160,28 @@ void MotionPlanner::ExtendMyApproach(void)
     double magnitudeLine = this->getMagnitude(line);
     int numStepsOnLine = floor(magnitudeLine/(m_simulator->GetDistOneStep()));
 
+
+    double sto[2];
     //Iterate along the line, checking steps as we get further and further to the goal.
     long e; // Checks to see what vertex we are currently at
-    for(int i = 1; i <= numStepsOnLine; i++){
-      double iStepVector[] = {0, 0};
-      IthStepOnLine(vidGo,vidGoal,i, m_simulator->GetDistOneStep(), iStepVector); 
-      //Here, we check to see if we've actually hit an obstacle
-      while(!m_simulator->IsValidState()){
-        //First, we generate a random vertex
-        e = randomVert();
-        //Then, we plug in our random vertex and start crafting our line
-        ExtendTree(randomVertex,iStepVector);
+
+    long e = m_vertices.size();
+    long randomVertex = 0;
+    if (e != 0)
+      randomVertex = random() % e;
+    //m_simulator->SetRobotState(vidGo);
+    for (int j= 0, j < m_simulator->GetNrObstacles(), j++) {
+      double d = sqrt(pow((vidGo[0]-m_simulator->GetObstacleCenterX(j)),2)+pow((vidGo[1]-m_simulator->GetObstacleCenterY(j)),2));
+      if (d < (m_simulator->GetObstacleRadius(j))) {
+        m_simulator->SampleState(sto);
+        ExtendTree(randomVertex, sto);
       }
       else {
-        Vertex* newVertex = new Vertex();
-        newVertex->m_parent = vid;
-        newVertex->m_state[0] = iStepVector[0];
-        newVertex->m_state[1] = iStepVector[1];
-        newVertex->m_type = 0;
-        if (newVertex->HasRobotReachedGoal())
-          newVertex->m_type = 2;
-        newVertex->m_nchildren = 0;
-
-        MotionPlanner::AddVertex(newVertex);
+        IthStepOnLine(vidGoal,sto,e,m_simulator->GetDistOneStep(), iStepVector);
+        ExtendTree((int)e-1, sto);
       }
-      m_simulator->SetRobotState(iStepVector);
     }
+    //IthStepOnLine;
    
     
     m_totalSolveTime += ElapsedTime(&clk);
