@@ -145,7 +145,48 @@ void MotionPlanner::ExtendMyApproach(void)
     Clock clk;
     StartTime(&clk);
  
-//your code
+    // Here, what we're trying to do is that we want
+    // to first make a possible path that could stem from our decisions
+    double vidGo[2] = {0,0};
+    double vidGoal[2] = {0,0};
+    vidGo[0] = m_simulator->GetRobotCenterX();
+    vidGo[1] = m_simulator->GetRobotCenterY();
+
+    vidGoal[0] = m_simulator->GetGoalCenterX();
+    vidGoal[1] = m_simulator->GetGoalCenterY();
+
+    //Here, what we are doing is that we're setting up the line for our system
+    double line[] = {vidGoal[0] - vidGo[0], vidGoal[1] - vidGo[1]};
+    double magnitudeLine = this->getMagnitude(line);
+    int numStepsOnLine = floor(magnitudeLine/(m_simulator->GetDistOneStep()));
+
+    //Iterate along the line, checking steps as we get further and further to the goal.
+    long e; // Checks to see what vertex we are currently at
+    for(int i = 1; i <= numStepsOnLine; i++){
+      double iStepVector[] = {0, 0};
+      IthStepOnLine(vidGo,vidGoal,i, m_simulator->GetDistOneStep(), iStepVector); 
+      //Here, we check to see if we've actually hit an obstacle
+      while(!m_simulator->IsValidState()){
+        //First, we generate a random vertex
+        e = randomVert();
+        //Then, we plug in our random vertex and start crafting our line
+        ExtendTree(randomVertex,iStepVector);
+      }
+      else {
+        Vertex* newVertex = new Vertex();
+        newVertex->m_parent = vid;
+        newVertex->m_state[0] = iStepVector[0];
+        newVertex->m_state[1] = iStepVector[1];
+        newVertex->m_type = 0;
+        if (newVertex->HasRobotReachedGoal())
+          newVertex->m_type = 2;
+        newVertex->m_nchildren = 0;
+
+        MotionPlanner::AddVertex(newVertex);
+      }
+      m_simulator->SetRobotState(iStepVector);
+    }
+   
     
     m_totalSolveTime += ElapsedTime(&clk);
 }
