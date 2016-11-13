@@ -105,8 +105,20 @@ void MotionPlanner::ExtendRandom(void)
     StartTime(&clk);
     //printf("Got to samples[2] declaration");
     double samples[2];
-    m_simulator->SampleState(samples);
+    //Now to roll the dice: 9 for sampling goal point, 0-8 for random sample.
+    int diceResult = random() % 10;
+    if(diceResult != 9){
+      m_simulator->SampleState(samples);
+    }
+    else{
+      samples[0] = PseudoRandomUniformReal(m_simulator->GetGoalCenterX() - m_simulator->GetGoalRadius(),
+					   m_simulator->GetGoalCenterX() + m_simulator->GetGoalRadius());
+      samples[1] = PseudoRandomUniformReal(m_simulator->GetGoalCenterY() - m_simulator->GetGoalRadius(),
+					   m_simulator->GetGoalCenterY() + m_simulator->GetGoalRadius());
 
+    }
+
+    
     long max = m_vertices.size();
     
     long randomVertex = 0;
