@@ -145,7 +145,7 @@ void MotionPlanner::ExtendMyApproach(void)
     Clock clk;
     StartTime(&clk);
 
-     // Here, what we're trying to do is that we want
+       // Here, what we're trying to do is that we want
     // to first make a possible path that could stem from our decisions
     double vidGo[2] = {0,0};
     double vidGoal[2] = {0,0};
@@ -162,27 +162,32 @@ void MotionPlanner::ExtendMyApproach(void)
 
 
     double sto[2];
-    //Iterate along the line, checking steps as we get further and further to the goal.
-    long e; // Checks to see what vertex we are currently at
+    double iStepVector[2] = {0,0}; //Typically step size when no objects present
+    long e = m_vertices.size(); // Checks to see what vertex we are currently at
 
-    long e = m_vertices.size();
     long randomVertex = 0;
-    if (e != 0)
-      randomVertex = random() % e;
-    //m_simulator->SetRobotState(vidGo);
-    for (int j= 0, j < m_simulator->GetNrObstacles(), j++) {
-      double d = sqrt(pow((vidGo[0]-m_simulator->GetObstacleCenterX(j)),2)+pow((vidGo[1]-m_simulator->GetObstacleCenterY(j)),2));
-      if (d < (m_simulator->GetObstacleRadius(j))) {
-        m_simulator->SampleState(sto);
-        ExtendTree(randomVertex, sto);
+    int j = 0;
+
+
+    /*IthStepOnLine(vidGo,vidGoal,1,m_simulator->GetDistOneStep(), iStepVector);
+    printf("iStepVector X:%1.2f\n",iStepVector[0]);
+    printf("iStepVector Y:%1.2f\n",iStepVector[1]);
+    exit(0);*/
+    for (int i = 0; i < numStepsOnLine; i++) {
+      for (int j= 0; j < m_simulator->GetNrObstacles(); j++) {
+        e = m_vertices.size();
+        if (e != 0)
+          randomVertex = random() % e;
+        double d = sqrt(pow((vidGo[0]-m_simulator->GetObstacleCenterX(j)),2)+pow((vidGo[1]-m_simulator->GetObstacleCenterY(j)),2));
+        if (d < (m_simulator->GetObstacleRadius(j))) {
+          m_simulator->SampleState(sto);
+          ExtendTree(randomVertex, sto);
+        }
+        else {
+          ExtendTree(e-1,iStepVector);
+        }
       }
-      else {
-        IthStepOnLine(vidGoal,sto,e,m_simulator->GetDistOneStep(), iStepVector);
-        ExtendTree((int)e-1, sto);
-      }
-    }
-    //IthStepOnLine;
-   
+    }    
     
     m_totalSolveTime += ElapsedTime(&clk);
 }
