@@ -144,50 +144,62 @@ void MotionPlanner::ExtendMyApproach(void)
 {
     Clock clk;
     StartTime(&clk);
-
-       // Here, what we're trying to do is that we want
-    // to first make a possible path that could stem from our decisions
-    double vidGo[2] = {0,0};
-    double vidGoal[2] = {0,0};
-    vidGo[0] = m_simulator->GetRobotCenterX();
-    vidGo[1] = m_simulator->GetRobotCenterY();
-
-    vidGoal[0] = m_simulator->GetGoalCenterX();
-    vidGoal[1] = m_simulator->GetGoalCenterY();
-
-    //Here, what we are doing is that we're setting up the line for our system
-    double line[] = {vidGoal[0] - vidGo[0], vidGoal[1] - vidGo[1]};
-    double magnitudeLine = this->getMagnitude(line);
-    int numStepsOnLine = floor(magnitudeLine/(m_simulator->GetDistOneStep()));
-
-
-    double sto[2];
-    double iStepVector[2] = {0,0}; //Typically step size when no objects present
-    long e = m_vertices.size(); // Checks to see what vertex we are currently at
-
-    long randomVertex = 0;
-    int j = 0;
-
-
-    /*IthStepOnLine(vidGo,vidGoal,1,m_simulator->GetDistOneStep(), iStepVector);
-    printf("iStepVector X:%1.2f\n",iStepVector[0]);
-    printf("iStepVector Y:%1.2f\n",iStepVector[1]);
-    exit(0);*/
-    for (int i = 0; i < numStepsOnLine; i++) {
-      for (int j= 0; j < m_simulator->GetNrObstacles(); j++) {
-        e = m_vertices.size();
-        if (e != 0)
-          randomVertex = random() % e;
-        double d = sqrt(pow((vidGo[0]-m_simulator->GetObstacleCenterX(j)),2)+pow((vidGo[1]-m_simulator->GetObstacleCenterY(j)),2));
-        if (d < (m_simulator->GetObstacleRadius(j))) {
-          m_simulator->SampleState(sto);
-          ExtendTree(randomVertex, sto);
+    double samples[2];
+    bool uniqueVertex = false;
+    int closestVid = 0 ; 
+    double minDistance;
+    double xDistanceSquare;
+    double yDistanceSquare;
+    double xMinDistanceSquare;
+    double yMinDistanceSquare;
+    int robotSize = (int)m_simulator->GetRobotRadius(); //* 2;
+    unsigned int vertexCount = m_vertices.size();	
+    //printf("VertexCount:%d\n",vertexCount);
+    // Loop through all verteces to make sure we aren't selecting a point too close to other verteces
+    m_simulator->SampleState(samples);
+    xMinDistanceSquare = pow(samples[0] - m_vertices[0]->m_state[0], 2);
+    yMinDistanceSquare = pow(samples[1] - m_vertices[0]->m_state[1], 2);
+    minDistance = sqrt(xMinDistanceSquare + yMinDistanceSquare);
+    for (unsigned int i = 0; i < vertexCount; i++){
+        xDistanceSquare = pow(m_simulator->GetGoalCenterX() - m_vertices[i]->m_state[0], 2);
+        yDistanceSquare = pow(m_simulator->GetGoalCenterY() - m_vertices[i]->m_state[1], 2);
+        double closeness = sqrt(xDistanceSquare + yDistanceSquare);
+        // Pick the closest vertex to the goal and not a vertex that was selected the first time
+        if (closeness < minDistance && closestVid != i){ 
+            minDistance = closeness;
+            closestVid = i;
+            uniqueVertex = true;
+        } 
+    }
+    // Try to add the point from the vertex closest to the goal
+    if (uniqueVertex) {
+        //printf("IS UNIQUE AND PRETTY\n");
+        ExtendTree(closestVid, samples);
+    }
+    else {
+        double samples[2];
+        //Now to roll the dice: 9 for sampling goal point, 0-8 for random sample.
+        int diceResult = random() % 10;
+        if(diceResult != 9){
+            m_simulator->SampleState(samples);
         }
-        else {
-          ExtendTree(e-1,iStepVector);
+        else{
+            samples[0] = PseudoRandomUniformReal(m_simulator->GetGoalCenterX() - m_simulator->GetGoalRadius(),
+					   m_simulator->GetGoalCenterX() + m_simulator->GetGoalRadius());
+            samples[1] = PseudoRandomUniformReal(m_simulator->GetGoalCenterY() - m_simulator->GetGoalRadius(),
+					   m_simulator->GetGoalCenterY() + m_simulator->GetGoalRadius());
         }
-      }
-    }    
+    
+        long max = m_vertices.size();
+    
+        long randomVertex = 0;
+        if (max != 0)
+            randomVertex = random() %  max;
+
+        //printf("Got to ExtendTree call, so look there!");
+        ExtendTree(randomVertex, samples);
+    }
+    
     
     m_totalSolveTime += ElapsedTime(&clk);
 }
