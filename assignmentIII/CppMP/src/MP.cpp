@@ -207,68 +207,64 @@ void MotionPlanner::ExtendMyApproach(void)
 	Clock clk;
 	StartTime(&clk);
 
-	double samples[2];
-	bool uniqueVertex = false;
-	int closestVid = 0 ; 
-	double minDistance;
-	double xDistanceSquare;
-	double yDistanceSquare;
-	double xMinDistanceSquare;
-	double yMinDistanceSquare;
-	int robotSize = (int)m_simulator->GetRobotRadius() * 2;
-	unsigned int vertexCount = m_vertices.size();
-	
+    double samples[2];
+    bool uniqueVertex = false;
+    int closestVid = 0 ;
+    double minDistance;
+    double xDistanceSquare;
+    double yDistanceSquare;
+    double xMinDistanceSquare;
+    double yMinDistanceSquare;
+    int robotSize = (int)m_simulator->GetRobotRadius(); //* 2;
+    unsigned int vertexCount = m_vertices.size();
+    //printf("VertexCount:%d\n",vertexCount);
+    // Loop through all verteces to make sure we aren't selecting a point too close to other verteces
+    m_simulator->SampleState(samples);
+    xMinDistanceSquare = pow(samples[0] - m_vertices[0]->m_state[0], 2);
+    yMinDistanceSquare = pow(samples[1] - m_vertices[0]->m_state[1], 2);
+    minDistance = sqrt(xMinDistanceSquare + yMinDistanceSquare);
+    for (unsigned int i = 0; i < vertexCount; i++){
+        xDistanceSquare = pow(m_simulator->GetGoalCenterX() - m_vertices[i]->m_state[0], 2);
+        yDistanceSquare = pow(m_simulator->GetGoalCenterY() - m_vertices[i]->m_state[1], 2);
+        double closeness = sqrt(xDistanceSquare + yDistanceSquare);
+        // Pick the closest vertex to the goal and not a vertex that was selected the first time
+        if (closeness < minDistance && closestVid != i){
+            minDistance = closeness;
+            closestVid = i;
+            uniqueVertex = true;
+        }
+    }
 
-	// Loop through all verteces to make sure we aren't selecting a point too close to other verteces
-	do{
-		bool tooClose = true;
-		
-		m_simulator->SampleState(samples);
-		xMinDistanceSquare = pow(samples[0] - m_vertices[0]->m_state[0], 2);
-		yMinDistanceSquare = pow(samples[1] - m_vertices[0]->m_state[1], 2);
-		minDistance = sqrt(xMinDistanceSquare + yMinDistanceSquare);
-		
-		for (unsigned int i = 0; i < vertexCount; i++){
-			
-			
-			double closeness = sqrt(xDistanceSquare + yDistanceSquare);
-			if (closeness <= robotSize){ // We are too close so break out and select a new one
-				tooClose = false;
-				break;
-			} 
-			// Remember the vertex closest to this samples
-			else if (closeness < minDistance){
-				closestVid = i; 
-				minDistance = closeness;
-			}
-		}
-		uniqueVertex = tooClose;
-	} while (!uniqueVertex);
 
-	// Try to add the point from the vertex closest to it
-	ExtendTree(closestVid, samples);
+    // Try to add the point from the vertex closest to the goal
+    if (uniqueVertex) {
+        //printf("IS UNIQUE AND PRETTY\n");
+        ExtendTree(closestVid, samples);
+    }
+    else {
+        double samples[2];
+        //Now to roll the dice: 9 for sampling goal point, 0-8 for random sample.
+        int diceResult = random() % 10;
+        if(diceResult != 9){
+            m_simulator->SampleState(samples);
+        }
+        else{
+            samples[0] = PseudoRandomUniformReal(m_simulator->GetGoalCenterX() - m_simulator->GetGoalRadius(),
+                                           m_simulator->GetGoalCenterX() + m_simulator->GetGoalRadius());
+            samples[1] = PseudoRandomUniformReal(m_simulator->GetGoalCenterY() - m_simulator->GetGoalRadius(),
+                                           m_simulator->GetGoalCenterY() + m_simulator->GetGoalRadius());
+        }
 
-	// If the vertex failed to be added then try finding the closest vertice
-	// to the goal besides the one already tried and branch to the point from it
-	if (vertexCount == m_vertices.size()){
-		xMinDistanceSquare = pow(m_simulator->GetGoalCenterX() - m_vertices[0]->m_state[0], 2);
-		yMinDistanceSquare = pow(m_simulator->GetGoalCenterY() - m_vertices[0]->m_state[1], 2);
-		minDistance = sqrt(xMinDistanceSquare + yMinDistanceSquare);
+        long max = m_vertices.size();
 
-		for (unsigned int i = 1; i < vertexCount; i++){
-			xDistanceSquare = pow(m_simulator->GetGoalCenterX() - m_vertices[i]->m_state[0], 2);
-			yDistanceSquare = pow(m_simulator->GetGoalCenterY() - m_vertices[i]->m_state[1], 2);
-			double closeness = sqrt(xDistanceSquare + yDistanceSquare);
+        long randomVertex = 0;
+        if (max != 0)
+            randomVertex = random() %  max;
 
-			// Pick the closest vertex to the goal and not a vertex that was selected the first time
-			if (closeness < minDistance && closestVid != i){ 
-				minDistance = closeness;
-				closestVid = i;
-			}
-		}
-		// Try to add the point from the vertex closest to the goal
-		ExtendTree(closestVid, samples);
-	}	
+        //printf("Got to ExtendTree call, so look there!");
+        ExtendTree(randomVertex, samples);
+    }
+
 
 	m_totalSolveTime += ElapsedTime(&clk);
 }
