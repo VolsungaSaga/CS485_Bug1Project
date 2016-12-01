@@ -7,66 +7,78 @@ package gmu.robot.pioneer;
 /**
  * This is the sample program for controlling an AmigoBot robot.
  * <P>
- * <A HREF="../COPYRIGHT.html">Copyright</A> (c)2001 Evolutinary Computation
- * Laboratory @ George Mason University
+ * <A HREF="../COPYRIGHT.html">Copyright</A>
+ * (c)2001 Evolutinary Computation Laboratory @ George Mason University
  *
  * @author Liviu Panait
  * @version 1.0
  */
 
-public class Example {
+public class Example
+    {
 
-	public static final int GOAL_X = 300;
-	public static final int GOAL_Y = 300;
-	public static final double SENSOR_RANGE = 1000;
-	public static final short TOP_SPEED = 10;
+    public static void usage() throws Exception
+        {
+        System.out.println("Usage: Example <port>");
+//        System.exit(0);
+        String[] derp = {"5000"};
+        main(derp);
+        }
 
-	public static void usage() {
-		System.out.println("Usage: Example <port>");
-		System.exit(0);
-	}
+    public static final void main( String[] args ) throws Exception
+        {
+        if (args.length<1)
+            usage();
 
-	public static final void main(String[] args) throws Exception {
-		if (args.length < 1)
-			usage();
+        PioneerRobot robot = new PioneerRobot();
+        robot.setVerbose(true);
+        robot.connect("127.0.0.1", Integer.parseInt(args[0]));
+        robot.sonar( true );
+        robot.enable( true );
+        robot.setVerbose(true); 
+        double goalX = 1000;
+        double goalY = 1000;
+        int state = 1;
+        boolean check = true;
+//        robot.dhead(a);
+//        robot.move(b);
+        
+        robot.vel2((byte)10, (byte)10); 
+        try { 
+            Thread.sleep(5000);
+            } catch (Exception e) {}
 
-		// INITIALIZATION
-
-		// According to the Pioneer 3's operator manual, these are the angles at
-		// which sonars 0 - 7 are located. I don't know if these mesh with the
-		// Pioneer's
-		// internal understanding of its own orientation, but nothing ventured,
-		// nothing gained.
-
-		/* SonarNum: 0 1 2 3 4 5 6 7 */
-		short[] sonarAngles = { 270, 310, 330, 350, 10, 30, 50, 90 };
-
-		double attractiveForceScale = 1;
-
-		double repulsiveForceScale = 1;
-
-		PioneerRobot robot = new PioneerRobot();
-		MedianFilter filter = new MedianFilter(robot);
-
-		robot.setVerbose(true);
-		robot.connect("localhost", Integer.parseInt(args[0]));
-		robot.sonar(true);
-		robot.enable(true);
-		robot.setVerbose(false);
-
-		// LOOP
-
-		while (true) {
-
-			double[] sensorReadings = filter.getFilteredSonarValues();
-
-		}
-
-	}
-
-	public static double getMagnitudeDoubles(double x, double y) {
-
-		return Math.sqrt((x * x) + (y * y));
-
-	}
-}
+         while(check){
+          switch(state){
+            case 0: //finished
+              check = false;
+              break;
+            case 1: // move all toward the goal
+              if(goalX >= 0 && goalY >=0){
+                 robot.dhead(Math.toDegrees(Math.atan((goalY-robot.getYPos)/(goalX-robot.getXPos)));
+              }
+              robot.vel2((byte)5, (byte)5);
+              if(robot.getXPos()>goalX && robot.getYPos()>goalY){
+                state = 0;
+              }
+          }
+          
+        }
+        robot.e_stop(); 
+        robot.enable(true); 
+        System.out.println(robot.getXPos()); 
+        try { 
+            Thread.sleep(2000); } catch (Exception e) {} 
+        //robot.resetOdometery(); 
+        System.out.println(robot.getXPos()); 
+        
+        /*for( short i = 0 ; i < 10 ; i++ )
+           {
+           robot.sound(i);
+           robot.dhead( (short)(60 * (short)(2*(i%2)-1)) );
+           Thread.sleep(1000);
+           }
+        */
+        robot.disconnect();
+        }
+    }
