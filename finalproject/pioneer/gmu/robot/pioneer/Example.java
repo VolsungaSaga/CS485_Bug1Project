@@ -52,23 +52,38 @@ public class Example {
 				check = false;
 				break;
 			case 1: // move all toward the goal
-				double angleDeg = Math
-						.toDegrees(Math.atan(Math.abs(goalY - robot.getYPos()) / Math.abs(goalX - robot.getXPos())));
+				double angleRads = Math.atan(Math.abs(goalY - robot.getYPos()) / 
+						 Math.abs(goalX - robot.getXPos()));
 				
-				if (Math.abs(robot.getOrientation() - angleDeg) > 0.1) {
+				System.out.println("subtraction " + Math.abs(robot.getOrientation() - angleRads));
+				System.out.println("angle calc " + angleRads);
+				System.out.println("Robot Or " + robot.getOrientation());
+
+		//		if (Math.abs(robot.getOrientation() - angleRads) > 0.01) {
+					
+					double angleDeg = Math.toDegrees(angleRads);
 					// first or second quadrant.
 					if ((goalX >= 0 && goalY >= 0)) {
+						System.out.println("First quad");
 						robot.dhead((short) angleDeg);
 					} else if ((goalX < 0 && goalY > 0)) {
+						System.out.println("second quad");
 						robot.dhead((short) (180 - angleDeg));
 					} else if (goalX < 0 && goalY < 0) {
+						System.out.println("third quad");
 						robot.dhead((short) (180 + angleDeg));
 					} else if (goalX > 0 && goalY < 0) {
+						System.out.println("forth quad");
 						robot.dhead((short) (360 - angleDeg));
 					}
-				} else {
+					// Thread.sleep(1000);
+		//		} else {
+					while (!robot.isValidData())
+					{
+						System.out.println("not valid");
+					}
 					robot.vel2((byte) 5, (byte) 5);
-				}
+	//			}
 				
 				if (robot.getXPos() > goalX && robot.getYPos() > goalY) {
 					state = 0;
