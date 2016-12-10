@@ -13,8 +13,8 @@ package gmu.robot.pioneer;
 public class Example {
 
   
- static double goalX = -200;
- static double goalY = 700;
+ static double goalX = 600;
+ static double goalY = 600;
  
  public static void usage() throws Exception {
   System.out.println("Usage: Example <port>");
@@ -35,6 +35,7 @@ public class Example {
   robot.setVerbose(true);
   
   int state = 1;
+  int substate = 0;
   boolean check = true;
 
   try {
@@ -42,32 +43,79 @@ public class Example {
   } catch (Exception e) {
   }
 
-  //MedianFilter filter = new MedianFilter(robot);
+  MedianFilter filter = new MedianFilter(robot);
+        // sensor 15 is left rear from robots view on top of switch
+        
+        //two front sensors
+        // when sensor 3 is around 400 we are too close to an obsticle
+        // when sensor 4 is around 400 we are too close to an obsticle
+        
+        // left side sensors 
+        // for sensor 0 close value is 225 far value is 400
+        // for sensor 15 close value is 225 far value is 400 
+        
+        // right side sensors
+        // for sensor 7 close value is 225 far value is 400
+        // for sensor 
+        
+        //
+        //  ---------------------
+        // /0 1 2 3 4 5 6 7      \
+        // |                      |
+        // |15 14 13 12 11 10 9 8 |
+        // \---------------------/
 
   while (check) {
-
-   switch (state) {
-   case 0: // reached the goal state
-    check = false;
-    break;
-   case 1: // move all toward the goa
-    double angleRads = Math.atan(Math.abs(goalY - robot.getYPos()) / 
-       Math.abs(goalX - robot.getXPos()));
+    double sensorReadings[] = filter.getFilteredSonarValues();
+    switch (state) {
+      case 0: // reached the goal state
+        check = false;
+        break;
+      case 1: // move all toward the goal
+        double angleRads = Math.atan(Math.abs(goalY - robot.getYPos()) / Math.abs(goalX - robot.getXPos()));
     
-    System.out.println("subtraction " + Math.abs(robot.getOrientation() - angleRads));
-    System.out.println("angle calc " + angleRads);
-    System.out.println("Robot Or " + robot.getOrientation());
-
-     doRotate(robot, angleRads);
-     
-
-     robot.vel2((byte) 5, (byte) 5);
+        System.out.println("subtraction " + Math.abs(robot.getOrientation() - angleRads));
+        System.out.println("angle calc " + angleRads);
+        System.out.println("Robot Or " + robot.getOrientation());
+        // sensor 15 is left rear from robots view on top of switch
+        
+        //two front sensors
+        // when sensor 3 is around 400 we are too close to an obsticle
+        // when sensor 4 is around 400 we are too close to an obsticle
+        
+        // left side sensors 
+        // for sensor 0 close value is 225 far value is 400
+        // for sensor 15 close value is 225 far value is 400 
+        
+        // right side sensors
+        // for sensor 7 close value is 225 far value is 400
+        // for sensor 
+        
+        //
+        //  ---------------------
+        // /0 1 2 3 4 5 6 7      \
+        // |                      |
+        // |15 14 13 12 11 10 9 8 |
+        // \---------------------/
+        
+       // doRotate(robot, angleRads);
+        Thread.sleep(1000);
+       // robot.vel2((byte) 5, (byte) 5);
     
-    if (Math.abs(robot.getXPos()) > Math.abs(goalX) && Math.abs(robot.getYPos()) > Math.abs(goalY)) {
-       System.out.println(robot.getXPos());
-       System.out.println(robot.getYPos());
-      state = 0;
-    }
+        if (Math.abs(robot.getXPos()) > Math.abs(goalX) && Math.abs(robot.getYPos()) > Math.abs(goalY)) {
+          System.out.println(robot.getXPos());
+          System.out.println(robot.getYPos());
+          state = 0;
+        }
+
+        if (sensorReadings[3] <= 400 || sensorReadings[4] < = 400) {
+          state = 2;
+        }
+      case 2:
+        switch (substate)
+        {
+        }
+      break;
    }
 
   }
