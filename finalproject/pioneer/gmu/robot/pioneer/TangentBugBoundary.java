@@ -6,13 +6,14 @@ public class TangentBugBoundary {
 	private double yCoord;
 	
 	private int sensorIndex; //Which sensor in the list provided by the filter is it?
-	public TangentBugBoundary(double distance, double angleDeg, int i) {
+	public TangentBugBoundary(double distance, double angleDeg, int i, PioneerRobot robot) {
 		// Given a sensor reading and the angle of the sensor, calculate the
 		// approximate
 		// x and y coord of the boundary point.
 		double angleRad = Math.toRadians(angleDeg);
-		this.setxCoord(distance * Math.cos(angleRad));
-		this.setyCoord(distance * Math.sin(angleRad));
+		double robotHeadingRad = robot.getOrientation();
+		this.setxCoord(distance * Math.cos(angleRad + robotHeadingRad));
+		this.setyCoord(distance * Math.sin(angleRad + robotHeadingRad));
 		this.setSensorIndex(i);
 
 	}

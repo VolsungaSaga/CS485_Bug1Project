@@ -59,7 +59,7 @@ public class TangentBug
 
 		while(check){
 			//The calculation of the Bounds of Obstacles. 
-			obstacleBounds = calculateObstacleBounds(filter);	 
+			obstacleBounds = calculateObstacleBounds(filter, robot);	 
 		   switch (state) {
 		   case 0: // reached the goal state
 		    check = false;
@@ -107,32 +107,32 @@ public class TangentBug
 	//Returns a list of boundary lists, representing each of the currently detected
 	// obstacles
 
-	public static  ArrayList<ArrayList<TangentBugBoundary>> calculateObstacleBounds(MedianFilter filter) {
+	public static  ArrayList<ArrayList<TangentBugBoundary>> calculateObstacleBounds(MedianFilter filter, PioneerRobot robot) {
 		ArrayList<ArrayList<TangentBugBoundary>> boundLists = new ArrayList<ArrayList<TangentBugBoundary>>();
 		ArrayList<TangentBugBoundary> currentBoundList = new ArrayList<TangentBugBoundary>();
 		//There will always be at least one group of bounds, though it could be empty (representing no obstacles). 
 		boundLists.add(currentBoundList);
 		double[] sensorReadings = filter.getFilteredSonarValues();
 
-		//If a given sensor's previous neighbor or next neighbor doesn't see anything, but the given sensor does, then the given sensor
+		//If a given sensor's previous neighbor doesn't see anything, but the given sensor does, then the given sensor
 		// shall represent an obstacle bound (the point at which the LOS of the sensor is tangent to the edge of what it thinks is the obstacle).
 		for(int i = 0; i < sensorReadings.length; i++){
 
 			int previousNeighbor = TangentBugBoundary.getPreviousNeighbor(i);
 			int nextNeighbor = TangentBugBoundary.getNextNeighbor(i);
 			//Is this sensor in range, but one of its neighbors isn't?
-			if(((sensorReadings[i] < SENSOR_RANGE) && !(sensorReadings[previousNeighbor] < SENSOR_RANGE)) ||
-					((sensorReadings[i] < SENSOR_RANGE) && !(sensorReadings[nextNeighbor] < SENSOR_RANGE))){
+			if(((sensorReadings[i] < SENSOR_RANGE) && !(sensorReadings[previousNeighbor] < SENSOR_RANGE)) ){
 				ArrayList<TangentBugBoundary> newBoundList = new ArrayList<TangentBugBoundary>();
 				boundLists.add(newBoundList);
 				currentBoundList = newBoundList;
-				currentBoundList.add(new TangentBugBoundary(sensorReadings[i], sonarAngles[i], i));
+				currentBoundList.add(new TangentBugBoundary(sensorReadings[i], sonarAngles[i], i, robot));
 
 			}
 
 			//Is this sensor in range, along with its neighbors?
-			else if (sensorReadings[i] < SENSOR_RANGE){
-				currentBoundList.add(new TangentBugBoundary(sensorReadings[i], sonarAngles[i], i));
+			else if ((sensorReadings[i] < SENSOR_RANGE) ||
+					((sensorReadings[i] < SENSOR_RANGE) && !(sensorReadings[nextNeighbor] < SENSOR_RANGE))){
+				currentBoundList.add(new TangentBugBoundary(sensorReadings[i], sonarAngles[i], i, robot));
 
 			}	
 			//If it isn't in range, don't put it in the obstacle group.
