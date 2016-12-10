@@ -21,18 +21,17 @@ public class TangentBug
 {
 
 	public static final double SENSOR_RANGE = 1000;
-	public static final double GOAL_X = 1000;
-	public static final double GOAL_Y = 1000;
-
+	public static double GOAL_X = 1000;
+	public static double GOAL_Y = 1000;
+	public static ArrayList<ArrayList<TangentBugBoundary>> obstacleBounds;
 
 	//Sensory Stuff
-	/*		SonarNum:							0   1   2   3   4    5    6    7    8     9     10    11   12   13  14   15*/
+	/*		SonarNum 0   1   2   3   4    5    6    7    8     9     10    11   12   13  14   15*/
 	public static final short[] sonarAngles = {90, 50, 30, 10, -10, -30, -50, -90, -90, -130, -150, -170, 170, 150, 130, 90};
 
 	public static void usage() throws Exception
 	{
 		System.out.println("Usage: Example <port>");
-		//        System.exit(0);
 		String[] derp = {"5000"};
 		main(derp);
 	}
@@ -50,53 +49,46 @@ public class TangentBug
 		robot.sonar( true );
 		robot.enable( true );
 		robot.setVerbose(true); 
-		double goalX = 1000;
-		double goalY = 1000;
 
 
 		int state = 1;
 		boolean check = true;
-		//        robot.dhead(a);
-		//        robot.move(b);
-
-//		robot.vel2((byte)10, (byte)10); 
 		try { 
 			Thread.sleep(5000);
 		} catch (Exception e) {}
 
 		while(check){
 			//The calculation of the Bounds of Obstacles. 
+			obstacleBounds = calculateObstacleBounds(filter);	 
+		   switch (state) {
+		   case 0: // reached the goal state
+		    check = false;
+		    break;
+		   case 1: // move all toward the goa
+		    double angleRads = Math.atan(Math.abs(GOAL_Y - robot.getYPos()) / 
+		       Math.abs(GOAL_X- robot.getXPos()));
+		    
+		    System.out.println("subtraction " + Math.abs(robot.getOrientation() - angleRads));
+		    System.out.println("angle calc " + angleRads);
+		    System.out.println("Robot Or " + robot.getOrientation());
 
-			ArrayList<ArrayList<TangentBugBoundary>> obstacleBounds = calculateObstacleBounds(filter);	 
+		     doRotate(robot, angleRads);
+		     
 
-			/*
-			switch(state){
-			case 0: //finished
-				check = false;
-				break;
-			case 1: // move all toward the goal
-				if(goalX >= 0 && goalY >=0){
-					robot.dhead((short) Math.toDegrees(Math.atan((goalY-robot.getYPos())/(goalX-robot.getXPos()))));
-				}
-				robot.vel2((byte)5, (byte)5);
-				if(robot.getXPos()>goalX && robot.getYPos()>goalY){
-					state = 0;
-				}*/
+		     robot.vel2((byte) 5, (byte) 5);
+		    
+		    if (Math.abs(robot.getXPos()) > Math.abs(GOAL_X) && Math.abs(robot.getYPos()) > Math.abs(GOAL_Y)) {
+		       System.out.println(robot.getXPos());
+		       System.out.println(robot.getYPos());
+		      state = 0;
+		    }
+		   }
+
+		  }
+
+		  robot.e_stop();
+
 		
-			//Test Code - Are the obstacle groups forming correctly?
-			for(int i = 0; i < obstacleBounds.size(); i++){
-				System.out.printf("\n---- OBSTACLE GROUP %d ----\n", i);
-				for(int j = 0; j < obstacleBounds.get(i).size(); j++){
-					System.out.printf("%s", obstacleBounds.get(i).get(j).toString());
-					
-				}
-			}
-		}
-
-		
-		robot.e_stop(); 
-		robot.enable(true); 
-		System.out.println(robot.getXPos()); 
 		try { 
 			Thread.sleep(2000); } catch (Exception e) {} 
 		//robot.resetOdometery(); 
@@ -151,6 +143,45 @@ public class TangentBug
 
 	}
 
+   
+    public static void printSomething() { 
+	for(int i = 0; i < obstacleBounds.size(); i++){
+		System.out.printf("\n---- OBSTACLE GROUP %d ----\n", i);
+		for(int j = 0; j < obstacleBounds.get(i).size(); j++){
+			System.out.printf("%s", obstacleBounds.get(i).get(j).toString());
+			
+		}
+	}
+    }
 
-
+ public static void doRotate(PioneerRobot robot, double angleRads){
+   //rotate and go to the goal
+        double angleDeg = Math.toDegrees(angleRads);
+     // first or second quadrant.
+     if ((GOAL_X >= 0 && GOAL_Y >= 0)) {
+      System.out.println("First quad");
+      for(int i=0; i<100;i++){
+        robot.head((short) angleDeg);
+      }
+      
+     } else if ((GOAL_X < 0 && GOAL_Y > 0)) {
+      System.out.println("second quad");
+      
+      for(int i=0; i<100;i++){
+        robot.head((short) (180 - angleDeg));
+      }
+     } else if (GOAL_X < 0 && GOAL_Y < 0) {
+      System.out.println("third quad");
+     
+      for(int i=0; i<100;i++){
+         robot.head((short) (180 + angleDeg));
+      }
+     } else if (GOAL_X > 0 && GOAL_Y < 0) {
+      System.out.println("forth quad");
+     
+      for(int i=0; i<100;i++){
+        robot.head((short) (360 - angleDeg));
+      }
+     }
+ }
 }
