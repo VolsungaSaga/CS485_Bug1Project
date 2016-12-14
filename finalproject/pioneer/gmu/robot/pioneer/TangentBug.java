@@ -130,7 +130,7 @@ public class TangentBug
 			}
 
 			//Is this sensor in range, along with its neighbors?
-			else if ((sensorReadings[i] < SENSOR_RANGE) ||
+			else if ((sensorReadings[i] < SENSOR_RANGE)  ||
 					((sensorReadings[i] < SENSOR_RANGE) && !(sensorReadings[nextNeighbor] < SENSOR_RANGE))){
 				currentBoundList.add(new TangentBugBoundary(sensorReadings[i], sonarAngles[i], i, robot));
 
