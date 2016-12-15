@@ -63,6 +63,13 @@ public class TangentBugBoundary {
 		return Math.sqrt(((this.xCoord * this.xCoord) + (this.yCoord * this.yCoord)));
 		
 	}
+	
+	//Angle to Boundary - From the CURRENT position of the robot.
+	public double getAngleRadToBound(PioneerRobot robot){
+		double radianAngle = Math.atan((robot.getYPos() - this.yCoord)/(robot.getXPos() - this.xCoord));
+		return radianAngle;
+		
+	}
 
 	public String toString(){
 		String printString = String.format("\nI'm number %d! : {X: %.2f, Y: %.2f}\n", this.sensorIndex, this.xCoord, this.yCoord);

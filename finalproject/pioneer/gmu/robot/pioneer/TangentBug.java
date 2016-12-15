@@ -25,6 +25,9 @@ public class TangentBug
 	public static double GOAL_Y = 1000;
 	public static ArrayList<ArrayList<TangentBugBoundary>> obstacleBounds;
 
+	public static enum OuterStates {GO_TO_GOAL_STATE, BOUNDARY_FOLLOW_STATE, WALL_FOLLOW_STATE };
+	public static enum WallFollowStates {TURNING_PARALLEL_STATE, STRAIGHT_WITH_TUNING_STATE, LOST_VISUAL_STATE};
+
 	//Sensory Stuff
 	/*		SonarNum 0   1   2   3   4    5    6    7    8     9     10    11   12   13  14   15*/
 	public static final short[] sonarAngles = {90, 50, 30, 10, -10, -30, -50, -90, -90, -130, -150, -170, 170, 150, 130, 90};
@@ -51,7 +54,9 @@ public class TangentBug
 		robot.setVerbose(true); 
 
 
-		int state = 1;
+		OuterStates OuterState = OuterStates.GO_TO_GOAL_STATE;
+		WallFollowStates WallFollowState = WallFollowStates.TURNING_PARALLEL_STATE; //TODO: Initialize to something after wall follow states more clearly delineated.
+
 		boolean check = true;
 		try { 
 			Thread.sleep(5000);
@@ -60,35 +65,28 @@ public class TangentBug
 		while(check){
 			//The calculation of the Bounds of Obstacles. 
 			obstacleBounds = calculateObstacleBounds(filter);	 
-		   switch (state) {
-		   case 0: // reached the goal state
-		    check = false;
-		    break;
-		   case 1: // move all toward the goa
-		    double angleRads = Math.atan(Math.abs(GOAL_Y - robot.getYPos()) / 
-		       Math.abs(GOAL_X- robot.getXPos()));
-		    
-		    System.out.println("subtraction " + Math.abs(robot.getOrientation() - angleRads));
-		    System.out.println("angle calc " + angleRads);
-		    System.out.println("Robot Or " + robot.getOrientation());
+			switch (OuterState) {
+			case GO_TO_GOAL_STATE: // reached the goal state
+				//Do stuff!
+			case BOUNDARY_FOLLOW_STATE: // move all toward the goa
+				//Do stuff!
 
-		     doRotate(robot, angleRads);
-		     
+			case WALL_FOLLOW_STATE:
+				//Do stuff!
+				switch(WallFollowState){
 
-		     robot.vel2((byte) 5, (byte) 5);
-		    
-		    if (Math.abs(robot.getXPos()) > Math.abs(GOAL_X) && Math.abs(robot.getYPos()) > Math.abs(GOAL_Y)) {
-		       System.out.println(robot.getXPos());
-		       System.out.println(robot.getYPos());
-		      state = 0;
-		    }
-		   }
+				case TURNING_PARALLEL_STATE:
+				case STRAIGHT_WITH_TUNING_STATE:
+				case LOST_VISUAL_STATE:
 
-		  }
+				}
+			}
 
-		  robot.e_stop();
+		}
 
-		
+		robot.e_stop();
+
+
 		try { 
 			Thread.sleep(2000); } catch (Exception e) {} 
 		//robot.resetOdometery(); 
@@ -103,6 +101,42 @@ public class TangentBug
 		 */
 		robot.disconnect();
 	}
+
+	//STATE TRANSITION FUNCTIONS
+
+	void GoToGoToGoal_ST(ArrayList<ArrayList<TangentBugBoundary>> boundLists, PioneerRobot robot){
+		//Do some motion command - go to point generic function, probably.	
+
+	} //Reached from Wall Follow State or Start
+
+	boolean IsGoalUnoccluded(ArrayList<ArrayList<TangentBugBoundary>> boundLists, PioneerRobot robot){
+		for(ArrayList<TangentBugBoundary> boundList : boundLists){
+			TangentBugBoundary firstBound = boundList.get(0);
+			TangentBugBoundary lastBound = boundList.get(boundList.size()-1);
+			double angleToFirst = firstBound.getAngleRadToBound(robot);
+			double angleToLast = lastBound.getAngleRadToBound(robot);
+			double angleToGoal = Math.atan((robot.getYPos() - GOAL_Y)/(robot.getXPos() - GOAL_X));
+			if((angleToFirst <= angleToGoal )&&(angleToGoal <= angleToLast)){
+				return false;
+			}
+
+		}
+		return true;
+	}
+
+
+	void GoToBoundaryFollow_ST(){
+
+
+	} //Reached from Go To Goal State or Boundary Follow
+	void GoToHeuristicBound_SubST(){} //Meant to be an internal function for BoundaryFollow_ST
+	TangentBugBoundary getHeuristicBound(){return null;} //Gets the bound that satisfies the heuristic formula for TangentBug.
+	void GoToWallFollow_ST(){} //Reached from Boundary Follow State or Wall Follow State
+
+
+
+
+
 
 	//Returns a list of boundary lists, representing each of the currently detected
 	// obstacles
@@ -143,45 +177,45 @@ public class TangentBug
 
 	}
 
-   
-    public static void printSomething() { 
-	for(int i = 0; i < obstacleBounds.size(); i++){
-		System.out.printf("\n---- OBSTACLE GROUP %d ----\n", i);
-		for(int j = 0; j < obstacleBounds.get(i).size(); j++){
-			System.out.printf("%s", obstacleBounds.get(i).get(j).toString());
-			
+
+	public static void printSomething() { 
+		for(int i = 0; i < obstacleBounds.size(); i++){
+			System.out.printf("\n---- OBSTACLE GROUP %d ----\n", i);
+			for(int j = 0; j < obstacleBounds.get(i).size(); j++){
+				System.out.printf("%s", obstacleBounds.get(i).get(j).toString());
+
+			}
 		}
 	}
-    }
 
- public static void doRotate(PioneerRobot robot, double angleRads){
-   //rotate and go to the goal
-        double angleDeg = Math.toDegrees(angleRads);
-     // first or second quadrant.
-     if ((GOAL_X >= 0 && GOAL_Y >= 0)) {
-      System.out.println("First quad");
-      for(int i=0; i<100;i++){
-        robot.head((short) angleDeg);
-      }
-      
-     } else if ((GOAL_X < 0 && GOAL_Y > 0)) {
-      System.out.println("second quad");
-      
-      for(int i=0; i<100;i++){
-        robot.head((short) (180 - angleDeg));
-      }
-     } else if (GOAL_X < 0 && GOAL_Y < 0) {
-      System.out.println("third quad");
-     
-      for(int i=0; i<100;i++){
-         robot.head((short) (180 + angleDeg));
-      }
-     } else if (GOAL_X > 0 && GOAL_Y < 0) {
-      System.out.println("forth quad");
-     
-      for(int i=0; i<100;i++){
-        robot.head((short) (360 - angleDeg));
-      }
-     }
- }
+	public static void doRotate(PioneerRobot robot, double angleRads, double globalX, double globalY){
+		//rotate and go to the goal
+		double angleDeg = Math.toDegrees(angleRads);
+		// first or second quadrant.
+		if ((globalX >= 0 && globalY >= 0)) {
+			System.out.println("First quad");
+			for(int i=0; i<100;i++){
+				robot.head((short) angleDeg);
+			}
+
+		} else if ((globalX < 0 && globalY > 0)) {
+			System.out.println("second quad");
+
+			for(int i=0; i<100;i++){
+				robot.head((short) (180 - angleDeg));
+			}
+		} else if (globalX < 0 && globalY < 0) {
+			System.out.println("third quad");
+
+			for(int i=0; i<100;i++){
+				robot.head((short) (180 + angleDeg));
+			}
+		} else if (globalX > 0 && globalY < 0) {
+			System.out.println("forth quad");
+
+			for(int i=0; i<100;i++){
+				robot.head((short) (360 - angleDeg));
+			}
+		}
+	}
 }
