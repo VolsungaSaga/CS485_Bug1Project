@@ -25,9 +25,12 @@ public class TangentBug
 	public static double GOAL_Y = 1000;
 	public static ArrayList<ArrayList<TangentBugBoundary>> obstacleBounds;
 
-	public static enum OuterStates {GO_TO_GOAL_STATE, BOUNDARY_FOLLOW_STATE, WALL_FOLLOW_STATE };
+	public static enum OuterStates {START, GO_TO_GOAL_STATE, BOUNDARY_FOLLOW_STATE, WALL_FOLLOW_STATE };
 	public static enum WallFollowStates {TURNING_PARALLEL_STATE, STRAIGHT_WITH_TUNING_STATE, LOST_VISUAL_STATE};
 
+	//Initialization of States and stuff.
+	public static OuterStates OuterState = OuterStates.START;
+	public static WallFollowStates WallFollowState = WallFollowStates.TURNING_PARALLEL_STATE; 
 	//Sensory Stuff
 	/*		SonarNum 0   1   2   3   4    5    6    7    8     9     10    11   12   13  14   15*/
 	public static final short[] sonarAngles = {90, 50, 30, 10, -10, -30, -50, -90, -90, -130, -150, -170, 170, 150, 130, 90};
@@ -41,6 +44,7 @@ public class TangentBug
 
 	public static final void main( String[] args ) throws Exception
 	{
+		//Initial Bullcrap...
 		if (args.length<1)
 			usage();
 
@@ -54,32 +58,49 @@ public class TangentBug
 		robot.setVerbose(true); 
 
 
-		OuterStates OuterState = OuterStates.GO_TO_GOAL_STATE;
-		WallFollowStates WallFollowState = WallFollowStates.TURNING_PARALLEL_STATE; //TODO: Initialize to something after wall follow states more clearly delineated.
 
 		boolean check = true;
 		try { 
 			Thread.sleep(5000);
 		} catch (Exception e) {}
 
+		//THE MAIN 
 		while(check){
 			//The calculation of the Bounds of Obstacles. 
 			obstacleBounds = calculateObstacleBounds(filter);	 
 			switch (OuterState) {
-			case GO_TO_GOAL_STATE: // reached the goal state
+			case START:
+				GoToGoToGoal_ST(obstacleBounds, robot);
+				break;
+			case GO_TO_GOAL_STATE: 
 				//Do stuff!
-			case BOUNDARY_FOLLOW_STATE: // move all toward the goa
-				//Do stuff!
+				if(!IsGoalUnoccluded(obstacleBounds, robot)){
+					GoToBoundaryFollow_ST(obstacleBounds, robot);
+				}
 
+				break;
+
+			case BOUNDARY_FOLLOW_STATE: 
+				//Do stuff!
+				
+				
+				break;
 			case WALL_FOLLOW_STATE:
 				//Do stuff!
 				switch(WallFollowState){
 
 				case TURNING_PARALLEL_STATE:
+					
+					break;
 				case STRAIGHT_WITH_TUNING_STATE:
+					
+					break;
 				case LOST_VISUAL_STATE:
+					
+					break;
 
 				}
+				break;
 			}
 
 		}
@@ -104,20 +125,32 @@ public class TangentBug
 
 	//STATE TRANSITION FUNCTIONS
 
-	void GoToGoToGoal_ST(ArrayList<ArrayList<TangentBugBoundary>> boundLists, PioneerRobot robot){
+	public static void GoToGoToGoal_ST(ArrayList<ArrayList<TangentBugBoundary>> boundLists, PioneerRobot robot){
+		OuterState = OuterStates.GO_TO_GOAL_STATE;
+		WallFollowState = WallFollowStates.TURNING_PARALLEL_STATE;
 		//Do some motion command - go to point generic function, probably.	
-
+		double angleToGoalRads = Math.atan((robot.getYPos() - GOAL_Y)/(robot.getXPos() - GOAL_X)); 
+		doRotate(robot, angleToGoalRads, GOAL_X, GOAL_Y);
 	} //Reached from Wall Follow State or Start
 
-	boolean IsGoalUnoccluded(ArrayList<ArrayList<TangentBugBoundary>> boundLists, PioneerRobot robot){
+	public static boolean IsGoalUnoccluded(ArrayList<ArrayList<TangentBugBoundary>> boundLists, PioneerRobot robot){
+		//printSomething();
 		for(ArrayList<TangentBugBoundary> boundList : boundLists){
-			TangentBugBoundary firstBound = boundList.get(0);
-			TangentBugBoundary lastBound = boundList.get(boundList.size()-1);
-			double angleToFirst = firstBound.getAngleRadToBound(robot);
-			double angleToLast = lastBound.getAngleRadToBound(robot);
-			double angleToGoal = Math.atan((robot.getYPos() - GOAL_Y)/(robot.getXPos() - GOAL_X));
-			if((angleToFirst <= angleToGoal )&&(angleToGoal <= angleToLast)){
-				return false;
+			//If the list we're looking at is of size 0, then don't bother with it.
+			if(boundList.size() != 0){
+				TangentBugBoundary firstBound = boundList.get(0);
+				TangentBugBoundary lastBound = boundList.get(boundList.size()-1);
+				double angleToFirst = firstBound.getAngleRadToBound(robot);
+				System.out.printf("\n\nAngle to First Bound: %.2f\n", angleToFirst);
+				double angleToLast = lastBound.getAngleRadToBound(robot);
+				System.out.printf("Angle to Last Bound: %.2f\n", angleToLast);
+
+				double angleToGoal = Math.atan((robot.getYPos() - GOAL_Y)/(robot.getXPos() - GOAL_X));
+				System.out.printf("Angle to Goal: %.2f\n", angleToGoal);
+
+				if((angleToFirst <= angleToGoal )&&(angleToGoal <= angleToLast)){
+					return false;
+				}	
 			}
 
 		}
@@ -125,13 +158,44 @@ public class TangentBug
 	}
 
 
-	void GoToBoundaryFollow_ST(){
-
-
+	public static void GoToBoundaryFollow_ST(ArrayList<ArrayList<TangentBugBoundary>> boundLists, PioneerRobot robot){
+		OuterState = OuterStates.BOUNDARY_FOLLOW_STATE; //TODO: Make this do something proper, after testing doRotate.
+		TangentBugBoundary heuristicBound = getHeuristicBound(boundLists, robot);
+		GoToHeuristicBound_SubST(heuristicBound, robot);
 	} //Reached from Go To Goal State or Boundary Follow
-	void GoToHeuristicBound_SubST(){} //Meant to be an internal function for BoundaryFollow_ST
-	TangentBugBoundary getHeuristicBound(){return null;} //Gets the bound that satisfies the heuristic formula for TangentBug.
-	void GoToWallFollow_ST(){} //Reached from Boundary Follow State or Wall Follow State
+
+	public static void GoToHeuristicBound_SubST(TangentBugBoundary heuristicBound, PioneerRobot robot){
+		System.out.printf("Going to Boundary: %.2f , %.2f", heuristicBound.getxCoord(), heuristicBound.getyCoord());
+		doRotate(robot, heuristicBound.getAngleRadToBound(robot), heuristicBound.getxCoord(), heuristicBound.getyCoord());
+		
+		
+	} //Meant to be an internal function for BoundaryFollow_ST
+
+	//Returns the boundary point that minimizes this heuristic equation: dist_RobotToBound + dist_BoundToGoal
+	public static TangentBugBoundary getHeuristicBound(ArrayList<ArrayList<TangentBugBoundary>> boundLists, PioneerRobot robot){
+		TangentBugBoundary heuristicBound = null;
+		for(ArrayList<TangentBugBoundary> boundList: boundLists){
+			if(boundList.size() != 0){
+				TangentBugBoundary firstBound = boundList.get(0);
+				TangentBugBoundary lastBound = boundList.get(boundList.size()-1);
+				if((heuristicBound == null) || (firstBound.getHeuristicDistance(robot, GOAL_X, GOAL_Y) < heuristicBound.getHeuristicDistance(robot, GOAL_X, GOAL_Y)) ){
+					heuristicBound = firstBound;
+
+				}
+
+				if(((heuristicBound == null) || (lastBound.getHeuristicDistance(robot, GOAL_X, GOAL_Y) < heuristicBound.getHeuristicDistance(robot, GOAL_X, GOAL_Y)))){
+					heuristicBound = lastBound;
+
+				}
+			}
+
+
+		}
+
+		return heuristicBound;
+	} //Gets the bound that satisfies the heuristic formula for TangentBug.
+
+	public static void GoToWallFollow_ST(){} //Reached from Boundary Follow State or Wall Follow State
 
 
 
@@ -217,5 +281,7 @@ public class TangentBug
 				robot.head((short) (360 - angleDeg));
 			}
 		}
+
+		robot.vel2((byte) 5, (byte) 5);
 	}
 }
