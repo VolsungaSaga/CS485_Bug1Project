@@ -8,6 +8,7 @@ package gmu.robot.pioneer;
 import java.util.*;
 
 /**
+ * 
  * This is the sample program for controlling an AmigoBot robot.
  * <P>
  * <A HREF="../COPYRIGHT.html">Copyright</A>
@@ -21,8 +22,8 @@ public class TangentBug
 {
 
 	public static final double SENSOR_RANGE = 1000;
-	public static double GOAL_X = 1000;
-	public static double GOAL_Y = 1000;
+	public static double GOAL_X = -5000;
+	public static double GOAL_Y = 5000;
 	public static ArrayList<ArrayList<TangentBugBoundary>> obstacleBounds;
 
 	public static enum OuterStates {START, GO_TO_GOAL_STATE, BOUNDARY_FOLLOW_STATE, WALL_FOLLOW_STATE };
@@ -51,11 +52,10 @@ public class TangentBug
 		PioneerRobot robot = new PioneerRobot();    
 		MedianFilter filter = new MedianFilter(robot);
 
-		robot.setVerbose(true);
 		robot.connect("localhost", Integer.parseInt(args[0]));
 		robot.sonar( true );
 		robot.enable( true );
-		robot.setVerbose(true); 
+		robot.setVerbose(false); 
 
 
 
@@ -82,21 +82,23 @@ public class TangentBug
 
 			case BOUNDARY_FOLLOW_STATE: 
 				//Do stuff!
-				
-				
+				if(!IsGoalUnoccluded(obstacleBounds, robot)){
+					GoToBoundaryFollow_ST(obstacleBounds, robot);
+				}
+
 				break;
 			case WALL_FOLLOW_STATE:
 				//Do stuff!
 				switch(WallFollowState){
 
 				case TURNING_PARALLEL_STATE:
-					
+
 					break;
 				case STRAIGHT_WITH_TUNING_STATE:
-					
+
 					break;
 				case LOST_VISUAL_STATE:
-					
+
 					break;
 
 				}
@@ -141,12 +143,12 @@ public class TangentBug
 				TangentBugBoundary firstBound = boundList.get(0);
 				TangentBugBoundary lastBound = boundList.get(boundList.size()-1);
 				double angleToFirst = firstBound.getAngleRadToBound(robot);
-				System.out.printf("\n\nAngle to First Bound: %.2f\n", angleToFirst);
+				//System.out.printf("\n\nAngle to First Bound: %.2f\n", angleToFirst);
 				double angleToLast = lastBound.getAngleRadToBound(robot);
-				System.out.printf("Angle to Last Bound: %.2f\n", angleToLast);
+				//System.out.printf("Angle to Last Bound: %.2f\n", angleToLast);
 
 				double angleToGoal = Math.atan((robot.getYPos() - GOAL_Y)/(robot.getXPos() - GOAL_X));
-				System.out.printf("Angle to Goal: %.2f\n", angleToGoal);
+				//System.out.printf("Angle to Goal: %.2f\n", angleToGoal);
 
 				if((angleToFirst <= angleToGoal )&&(angleToGoal <= angleToLast)){
 					return false;
@@ -161,14 +163,22 @@ public class TangentBug
 	public static void GoToBoundaryFollow_ST(ArrayList<ArrayList<TangentBugBoundary>> boundLists, PioneerRobot robot){
 		OuterState = OuterStates.BOUNDARY_FOLLOW_STATE; //TODO: Make this do something proper, after testing doRotate.
 		TangentBugBoundary heuristicBound = getHeuristicBound(boundLists, robot);
+		System.out.println(heuristicBound.toString());
+		
 		GoToHeuristicBound_SubST(heuristicBound, robot);
 	} //Reached from Go To Goal State or Boundary Follow
 
 	public static void GoToHeuristicBound_SubST(TangentBugBoundary heuristicBound, PioneerRobot robot){
-		System.out.printf("Going to Boundary: %.2f , %.2f", heuristicBound.getxCoord(), heuristicBound.getyCoord());
-		doRotate(robot, heuristicBound.getAngleRadToBound(robot), heuristicBound.getxCoord(), heuristicBound.getyCoord());
-		
-		
+		if(heuristicBound == null){
+			//System.out.printf("***Null heuristic bound!***");
+			return;
+		}
+
+		else{
+			System.out.printf("Going to Boundary: %.2f , %.2f", heuristicBound.getxCoord(), heuristicBound.getyCoord());
+			doRotate(robot, heuristicBound.getAngleRadToBound(robot), heuristicBound.getxCoord(), heuristicBound.getyCoord());
+		}
+
 	} //Meant to be an internal function for BoundaryFollow_ST
 
 	//Returns the boundary point that minimizes this heuristic equation: dist_RobotToBound + dist_BoundToGoal
@@ -255,6 +265,8 @@ public class TangentBug
 	public static void doRotate(PioneerRobot robot, double angleRads, double globalX, double globalY){
 		//rotate and go to the goal
 		double angleDeg = Math.toDegrees(angleRads);
+		System.out.printf("angleRad: %.2f", angleRads);
+		System.out.printf("angleDeg: %.2f", angleDeg);
 		// first or second quadrant.
 		if ((globalX >= 0 && globalY >= 0)) {
 			System.out.println("First quad");
@@ -266,19 +278,19 @@ public class TangentBug
 			System.out.println("second quad");
 
 			for(int i=0; i<100;i++){
-				robot.head((short) (180 - angleDeg));
+				robot.head((short) (180 + angleDeg));
 			}
 		} else if (globalX < 0 && globalY < 0) {
 			System.out.println("third quad");
 
 			for(int i=0; i<100;i++){
-				robot.head((short) (180 + angleDeg));
+				robot.head((short) (180 - angleDeg));
 			}
 		} else if (globalX > 0 && globalY < 0) {
-			System.out.println("forth quad");
+			System.out.println("fourth quad");
 
 			for(int i=0; i<100;i++){
-				robot.head((short) (360 - angleDeg));
+				robot.head((short) (360 + angleDeg));
 			}
 		}
 
