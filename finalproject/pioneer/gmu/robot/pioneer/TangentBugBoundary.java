@@ -58,10 +58,27 @@ public class TangentBugBoundary {
 		this.sensorIndex = sensorIndex;
 	}
 	
-	//Distance of Boundary
+	//Helper Methods for calculating heuristic distance.
 	
-	public double getDistance(){
-		return Math.sqrt(((this.xCoord * this.xCoord) + (this.yCoord * this.yCoord)));
+	public double getRobotDistanceToBoundary(PioneerRobot robot){
+		return Math.sqrt((Math.pow((robot.getXPos() - this.xCoord), 2) + Math.pow((robot.getYPos() - this.yCoord), 2)));
+		
+	}
+	
+	public double getBoundDistanceToGoal(double goalX, double goalY){
+		return Math.sqrt((Math.pow((goalX - this.xCoord), 2) + Math.pow((goalY - this.yCoord), 2)));
+
+	}
+	
+	public double getHeuristicDistance(PioneerRobot robot, double goalX, double goalY){
+		return this.getRobotDistanceToBoundary(robot) + this.getBoundDistanceToGoal(goalX, goalY);
+		
+	}
+	
+	//Angle to Boundary - From the CURRENT position of the robot.
+	public double getAngleRadToBound(PioneerRobot robot){
+		double radianAngle = Math.atan((robot.getYPos() - this.yCoord)/(robot.getXPos() - this.xCoord));
+		return radianAngle;
 		
 	}
 
