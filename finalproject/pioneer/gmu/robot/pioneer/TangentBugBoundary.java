@@ -4,6 +4,7 @@ public class TangentBugBoundary {
 
 	private double xCoord; //Where is this boundary, approximately?
 	private double yCoord;
+	private boolean isLeft;
 	
 	private int sensorIndex; //Which sensor in the list provided by the filter is it?
 	public TangentBugBoundary(double distance, double angleDeg, int i) {
@@ -14,7 +15,15 @@ public class TangentBugBoundary {
 		this.setxCoord(distance * Math.cos(angleRad));
 		this.setyCoord(distance * Math.sin(angleRad));
 		this.setSensorIndex(i);
-
+		this.isLeft = false;
+	}
+	
+	public void setLeft(boolean isLeft) {
+		this.isLeft = isLeft;
+	}
+	
+	public boolean getLeft() {
+		return isLeft;
 	}
 	
 	//Get ___ Neighbor: These functions return the index of the previous or next sensor in the sonar array that we've got. 
@@ -75,10 +84,9 @@ public class TangentBugBoundary {
 	}
 	
 	//Angle to Boundary - From the CURRENT position of the robot.
-	public double getAngleRadToBound(PioneerRobot robot){
+	public double getAngleRadToBound(PioneerRobot robot) {
 		double radianAngle = Math.atan((robot.getYPos() - this.yCoord)/(robot.getXPos() - this.xCoord));
 		return radianAngle;
-		
 	}
 
 	public String toString(){
