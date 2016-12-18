@@ -76,6 +76,7 @@ public class TangentBugBoundary {
 	}
 	
 	//Angle to Boundary - From the CURRENT position of the robot.
+	//Output's range is between pi/2 -> -pi/2
 	public double getAngleRadToBound(PioneerRobot robot){
 		double radianAngle = Math.atan((robot.getYPos() - this.yCoord)/(robot.getXPos() - this.xCoord));
 		return radianAngle;

@@ -22,8 +22,8 @@ public class TangentBug
 {
 
 	public static final double SENSOR_RANGE = 1000;
-	public static double GOAL_X = -5000;
-	public static double GOAL_Y = 5000;
+	public static double GOAL_X = 1000;
+	public static double GOAL_Y = 1000;
 	public static ArrayList<ArrayList<TangentBugBoundary>> obstacleBounds;
 
 	public static enum OuterStates {START, GO_TO_GOAL_STATE, BOUNDARY_FOLLOW_STATE, WALL_FOLLOW_STATE };
@@ -32,6 +32,12 @@ public class TangentBug
 	//Initialization of States and stuff.
 	public static OuterStates OuterState = OuterStates.START;
 	public static WallFollowStates WallFollowState = WallFollowStates.TURNING_PARALLEL_STATE; 
+	
+	//Flags for WallFollowState - might add some more later.
+	
+	//If it's true, obstacle's to the left. If it's false, obstacle's to the right.
+	public static boolean obstDirection = true;
+	
 	//Sensory Stuff
 	/*		SonarNum 0   1   2   3   4    5    6    7    8     9     10    11   12   13  14   15*/
 	public static final short[] sonarAngles = {90, 50, 30, 10, -10, -30, -50, -90, -90, -130, -150, -170, 170, 150, 130, 90};
@@ -84,6 +90,7 @@ public class TangentBug
 			case BOUNDARY_FOLLOW_STATE: 
 				//Do stuff!
 				if(!IsGoalUnoccluded(obstacleBounds, robot)){
+					System.out.println("In Boundary Follow State, goal still occluded!");
 					GoToBoundaryFollow_ST(obstacleBounds, robot);
 				}
 
@@ -158,15 +165,23 @@ public class TangentBug
 		return true;
 	}
 
-
+	//Reached from Go To Goal State or Boundary Follow
 	public static void GoToBoundaryFollow_ST(ArrayList<ArrayList<TangentBugBoundary>> boundLists, PioneerRobot robot){
-		OuterState = OuterStates.BOUNDARY_FOLLOW_STATE; //TODO: Make this do something proper, after testing doRotate.
+		OuterState = OuterStates.BOUNDARY_FOLLOW_STATE; 
 		TangentBugBoundary heuristicBound = getHeuristicBound(boundLists, robot);
 		System.out.println(heuristicBound.toString());
+		//Before we actually go anywhere, let's set obstacle direction by accessing the sensor index.
+		if((heuristicBound.getSensorIndex() <= 3 || heuristicBound.getSensorIndex() >= 12 )){
+			obstDirection = true; //If it's sensors 0-3 or 12-15, it's to our left.
+			
+		}
+		
+		else{ obstDirection = false;} //If not, it's to our right.
 		
 		GoToHeuristicBound_SubST(heuristicBound, robot);
-	} //Reached from Go To Goal State or Boundary Follow
+	} 
 
+	//Tells the robot to go to a boundary point, using doRotate().
 	public static void GoToHeuristicBound_SubST(TangentBugBoundary heuristicBound, PioneerRobot robot){
 		if(heuristicBound == null){
 			//System.out.printf("***Null heuristic bound!***");
@@ -203,9 +218,14 @@ public class TangentBug
 
 		return heuristicBound;
 	} //Gets the bound that satisfies the heuristic formula for TangentBug.
+	//Reached from Boundary Follow.
+	public static void GoToWallFollow_ST(){} 
 
-	public static void GoToWallFollow_ST(){} //Reached from Boundary Follow State or Wall Follow State
-
+	public static void GoToTurningParallel_SubST(){}
+	
+	public static void GoToGoStraight_SubST(){}
+	
+	public static void GoToLostVisual_SubST(){}
 
 
 
@@ -293,6 +313,6 @@ public class TangentBug
 			}
 		}
 
-		robot.vel2((byte) 5, (byte) 5);
+		robot.vel2((byte) 2, (byte) 2);
 	}
 }
