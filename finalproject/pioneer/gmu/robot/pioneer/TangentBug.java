@@ -368,7 +368,9 @@ public class TangentBug {
 						e.printStackTrace();
 					}
 					heuristicBound = firstBound;
-					if (firstBound.getSensorIndex() < lastBound.getSensorIndex()) {
+					//If the firstBound is on the right side and the lastBound is on the right
+					if ((firstBound.getSensorIndex() > 4 && firstBound.getSensorIndex() <= 10) && ((lastBound.getSensorIndex() > 4) && (lastBound.getSensorIndex() <= 10))) {
+                                                // If obstacle is on right, go left; vice versa
 						heuristicBound.setLeft(true);
 					} else {
 						heuristicBound.setLeft(false);
@@ -390,7 +392,9 @@ public class TangentBug {
 						e.printStackTrace();
 					}
 					heuristicBound = lastBound;
-					if (lastBound.getSensorIndex() < firstBound.getSensorIndex()) {
+                                        //If the firstBound is on the right side and the lastBound is on the right
+					if ((firstBound.getSensorIndex() > 4 && firstBound.getSensorIndex() <= 10) && ((lastBound.getSensorIndex() > 4) && (lastBound.getSensorIndex() <= 10))) {
+                                                // If obstacle is on right, go left; vice versa
 						heuristicBound.setLeft(true);
 					} else {
 						heuristicBound.setLeft(false);
