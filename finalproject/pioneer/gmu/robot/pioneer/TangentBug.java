@@ -24,13 +24,14 @@ public class TangentBug {
 	public static ArrayList<ArrayList<TangentBugBoundary>> obstacleBounds;
 	public static boolean hasturned = false;
 	public static TangentBugBoundary lastHeuristic = null;
+	public static boolean choseLeftBound = false;
 
 	public static enum OuterStates {
 		START, GO_TO_GOAL_STATE, BOUNDARY_FOLLOW_STATE, WALL_FOLLOW_STATE
 	};
 
 	public static enum WallFollowStates {
-		TURNING_PARALLEL_STATE, STRAIGHT_WITH_TUNING_STATE, LOST_VISUAL_STATE
+		TURNING_PARALLEL_STATE, OUTSIDE_CORNER_STATE, STRAIGHT_WITH_TUNING_STATE, LOST_VISUAL_STATE
 	};
 
 	// Initialization of States and stuff.
@@ -76,9 +77,12 @@ public class TangentBug {
 				GoToGoToGoal_ST(obstacleBounds, robot);
 				break;
 			case GO_TO_GOAL_STATE:
+				System.out.println("GO TO GOAL STATE");
+
 				// Do stuff!
 				// is there something in my way
 				if (!IsGoalUnoccluded(obstacleBounds, robot)) {
+					System.out.println("****************GOAL IS NOT UNOCCLUDED");
 					GoToBoundaryFollow_ST(obstacleBounds, robot);
 				}
 
@@ -86,10 +90,21 @@ public class TangentBug {
 
 			case BOUNDARY_FOLLOW_STATE:
 				// Do stuff!
+				System.out.println("In boundry state!!!!!!!!!!!!!!!");
+				System.out.println("In boundry state!!!!!!!!!!!!!!!");
+				System.out.println("In boundry state!!!!!!!!!!!!!!!");
+				System.out.println("In boundry state!!!!!!!!!!!!!!!");
+				System.out.println("In boundry state!!!!!!!!!!!!!!!");
+				System.out.println("In boundry state!!!!!!!!!!!!!!!");
+				System.out.println("In boundry state!!!!!!!!!!!!!!!");
 				if (!IsGoalUnoccluded(obstacleBounds, robot)) {
 					GoToBoundaryFollow_ST(obstacleBounds, robot);
+				} 
+				
+				if (objectInFront(robot, filter)) {
+					GoToWallFollow_ST();
 				}
-
+				
 				break;
 			case WALL_FOLLOW_STATE:
 				System.out.printf("*********** Wall Follow State ******************");
@@ -99,39 +114,85 @@ public class TangentBug {
 				System.out.println("Sensor 0: " + sensorReadings[0] + "\nsensor 15: " + sensorReadings[15]
 						+ "\nsensor 7: " + sensorReadings[7] + "\nsensor 8:\n" + sensorReadings[8]);
 				switch (WallFollowState) {
-				case TURNING_PARALLEL_STATE:
+					case TURNING_PARALLEL_STATE:
 
 					// determine which dir to rotate.
-					boolean direction = lastHeuristic.getLeft();
+					choseLeftBound = lastHeuristic.getLeft();
 
-					if (direction) {
-						if (sensorReadings[7] < 500 && sensorReadings[8] < 500) {
-							// second check is obs on left
-							System.out.println("if statement 1\n");
-							WallFollowState = WallFollowStates.STRAIGHT_WITH_TUNING_STATE;
-						}
-						robot.vel2((byte) 2, (byte) -2);
-						System.out.println("turning left!\n");
-					} else {
+					if (choseLeftBound) {
 						if (sensorReadings[0] < 500 && sensorReadings[15] < 500) {
 							// second check is obs on left
-							System.out.println("if statement 2\n");
-
+							System.out.println("if statement 1*************************\n");
 							WallFollowState = WallFollowStates.STRAIGHT_WITH_TUNING_STATE;
+							robot.vel2((byte) 0, (byte) 0);
+							robot.e_stop();
 						}
-						robot.vel2((byte) -2, (byte) 2);
+						robot.vel2((byte) 1, (byte) -1);
+						System.out.println("turning left!\n");
+					} else {
+						if (sensorReadings[7] < 500 && sensorReadings[8] < 500) {
+							// second check is obs on left
+							System.out.println("if statement 2**************************\n");
+							WallFollowState = WallFollowStates.STRAIGHT_WITH_TUNING_STATE;
+							robot.vel2((byte) 0, (byte) 0);
+							robot.e_stop();
+						}
+						robot.vel2((byte) -1, (byte) 1);
 						System.out.println("Turning Right\n");
 					}
-
 					break;
 				case STRAIGHT_WITH_TUNING_STATE:
-					OuterState = OuterStates.GO_TO_GOAL_STATE;
-					// went over the
+					System.out.println("Straight line with tuning state!!!!!!!!!!!!!!!!!!!!!!");
+	/*				int min = 300; 
+					int max = 500;
+					
+					// inside corner?
+				//	if () {
+						
+			//		}
+					
+					if (choseLeftBound) {
+						// this is the happy case we are within epsilon and delta and
+						// therefore the next move to follow the wall is straight. 
+						System.out.println("CHOOOOOOOOOOOOOOOOSELEFTBOUND!!!!!!!!!!!");
+						if ((sensorReadings[7] < max && sensorReadings[8] < max) && 
+								sensorReadings[7] >= min && sensorReadings[8] >= min) {
+							System.out.println("MIN SUCKS!!!!!!!!!!!!!!!!!!!!!!!!");
+							robot.vel2((byte)2, (byte)2);
+						} else if (sensorReadings[7] < min && 
+								   sensorReadings[8] > sensorReadings[7]) { // the front sensor is less than the back sensor and the front
+							           										// sensor is less than min. therefore roll out. 
+							System.out.println("MIN SUCKS 2!!!!!!!!!!!!!!!!!!!!!!!!");
+							robot.vel2((byte)1, (byte)2);
+						} else if( sensorReadings[7] > max && 
+								sensorReadings[7] > sensorReadings[8]) { // the front sensor is great than the max range and the 
+							 											 // back sensor is closer than the front sensor.
+							System.out.println("MIN SUCKS 3!!!!!!!!!!!!!!!!!!!!!!!!");
+							robot.vel2((byte)2, (byte)1);
+						}
+					} else {
+						// this is the happy case we are within epsilon and delta and
+						// therefore the next move to follow the wall is straight. 
+						if ((sensorReadings[0] < max && sensorReadings[15] < max) && 
+								sensorReadings[0] >= min && sensorReadings[15] >= min) {
+							System.out.println("MIN SUCKS 4!!!!!!!!!!!!!!!!!!!!!!!!");
+							robot.vel2((byte)2, (byte)2);
+						} else if (sensorReadings[0] < min && 
+								   sensorReadings[15] > sensorReadings[0]) { // the front sensor is less than the back sensor and the front
+							           										 // sensor is less than min. therefore roll out. 								
+							System.out.println("MIN SUCKS 5!!!!!!!!!!!!!!!!!!!!!!!!");
+							robot.vel2((byte)1, (byte)2);
+						} else if( sensorReadings[0] > max && 
+								sensorReadings[0] > sensorReadings[15]) { // the front sensor is great than the max range and the 
+								 										  // back sensor is closer than the front sensor.
+							System.out.println("MIN SUCKS 6!!!!!!!!!!!!!!!!!!!!!!!!");
+							robot.vel2((byte)2, (byte)1);
+						}
+					}		*/				
 					break;
 				case LOST_VISUAL_STATE:
-
+					OuterState = OuterStates.GO_TO_GOAL_STATE;
 					break;
-
 				}
 				break;
 			}
@@ -224,7 +285,6 @@ public class TangentBug {
 			System.out.printf("Going to Boundary: %.2f , %.2f", heuristicBound.getxCoord(), heuristicBound.getyCoord());
 			doRotate(robot, heuristicBound.getAngleRadToBound(robot), heuristicBound.getxCoord(),
 					heuristicBound.getyCoord());
-			OuterState = OuterStates.WALL_FOLLOW_STATE;
 		}
 
 	} // Meant to be an internal function for BoundaryFollow_ST
@@ -260,6 +320,8 @@ public class TangentBug {
 		// formula for TangentBug.
 
 	public static void GoToWallFollow_ST() {
+		OuterState = OuterStates.WALL_FOLLOW_STATE;
+		WallFollowState = WallFollowStates.TURNING_PARALLEL_STATE;
 	} // Reached from Boundary Follow
 		// State or Wall Follow State
 
@@ -350,5 +412,13 @@ public class TangentBug {
 		}
 
 		robot.vel2((byte) 5, (byte) 5);
+	}
+	
+	public static boolean objectInFront(PioneerRobot p_robot, MedianFilter p_filter) {
+		double[] sensorReadings = p_filter.getFilteredSonarValues();
+		if (sensorReadings[3] < 400 || sensorReadings[4] < 400) {
+			return true;
+		}
+		return false;
 	}
 }
