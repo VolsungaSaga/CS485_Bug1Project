@@ -23,7 +23,7 @@ public class TangentBug
 
 	public static final double SENSOR_RANGE = 1000;
 	public static double GOAL_X = 1000;
-	public static double GOAL_Y = 1000;
+	public static double GOAL_Y = 0;
 	public static ArrayList<ArrayList<TangentBugBoundary>> obstacleBounds;
 
 	public static enum OuterStates {START, GO_TO_GOAL_STATE, BOUNDARY_FOLLOW_STATE, WALL_FOLLOW_STATE };
@@ -33,11 +33,12 @@ public class TangentBug
 	public static OuterStates OuterState = OuterStates.START;
 	public static WallFollowStates WallFollowState = WallFollowStates.TURNING_PARALLEL_STATE; 
 	
-	//Flags for WallFollowState - might add some more later.
+	//Flags and Constants for WallFollowState - might add some more later.
 	
 	//If it's true, obstacle's to the left. If it's false, obstacle's to the right.
 	public static boolean obstDirection = true;
-	
+	public static final double WALL_FOLLOW_RANGE = 600;
+	public static TangentBugBoundary lastHeuristicBound = null;
 	//Sensory Stuff
 	/*		SonarNum 0   1   2   3   4    5    6    7    8     9     10    11   12   13  14   15*/
 	public static final short[] sonarAngles = {90, 50, 30, 10, -10, -30, -50, -90, -90, -130, -150, -170, 170, 150, 130, 90};
@@ -75,6 +76,7 @@ public class TangentBug
 			//The calculation of the Bounds of Obstacles. 
 
 			obstacleBounds = calculateObstacleBounds(filter, robot);	 
+			double [] sensorReadings = filter.getFilteredSonarValues();
 			switch (OuterState) {
 			case START:
 				GoToGoToGoal_ST(obstacleBounds, robot);
@@ -89,7 +91,12 @@ public class TangentBug
 
 			case BOUNDARY_FOLLOW_STATE: 
 				//Do stuff!
-				if(!IsGoalUnoccluded(obstacleBounds, robot)){
+				if(somethingInFront(sensorReadings)){
+					
+					GoToWallFollow_ST();
+				}
+				
+				else if(!IsGoalUnoccluded(obstacleBounds, robot)){
 					System.out.println("In Boundary Follow State, goal still occluded!");
 					GoToBoundaryFollow_ST(obstacleBounds, robot);
 				}
@@ -100,13 +107,24 @@ public class TangentBug
 				switch(WallFollowState){
 
 				case TURNING_PARALLEL_STATE:
-
+					if(!somethingInFront(sensorReadings)){
+						GoToGoStraight_SubST(robot);
+					}
 					break;
 				case STRAIGHT_WITH_TUNING_STATE:
-
+					if(!somethingToSides(sensorReadings, obstDirection)){
+						GoToLostVisual_SubST(robot);
+					}
 					break;
 				case LOST_VISUAL_STATE:
-
+					if(IsGoalUnoccluded(obstacleBounds, robot) ){
+						GoToGoToGoal_ST(obstacleBounds, robot);
+					}
+					
+					else if(somethingToSides(sensorReadings, obstDirection)){
+						GoToGoStraight_SubST(robot);
+					}
+					
 					break;
 
 				}
@@ -165,11 +183,14 @@ public class TangentBug
 		return true;
 	}
 
+	//This transition does a couple of things - first, it gets a bound that satisfies the heuristic equation. Then, it stores that bound in a global variable for later.
+	// Then, it flips the obstacle switch according to whether the robot went to a bound on its right or its left.
 	//Reached from Go To Goal State or Boundary Follow
 	public static void GoToBoundaryFollow_ST(ArrayList<ArrayList<TangentBugBoundary>> boundLists, PioneerRobot robot){
 		OuterState = OuterStates.BOUNDARY_FOLLOW_STATE; 
 		TangentBugBoundary heuristicBound = getHeuristicBound(boundLists, robot);
 		System.out.println(heuristicBound.toString());
+		//lastHeuristicBound = heuristicBound;
 		//Before we actually go anywhere, let's set obstacle direction by accessing the sensor index.
 		if((heuristicBound.getSensorIndex() <= 3 || heuristicBound.getSensorIndex() >= 12 )){
 			obstDirection = true; //If it's sensors 0-3 or 12-15, it's to our left.
@@ -219,15 +240,67 @@ public class TangentBug
 		return heuristicBound;
 	} //Gets the bound that satisfies the heuristic formula for TangentBug.
 	//Reached from Boundary Follow.
-	public static void GoToWallFollow_ST(){} 
+	public static void GoToWallFollow_ST(){
+		OuterState = OuterStates.WALL_FOLLOW_STATE;
+		WallFollowState = WallFollowStates.TURNING_PARALLEL_STATE;
+	} 
 
-	public static void GoToTurningParallel_SubST(){}
+	public static void GoToTurningParallel_SubST(PioneerRobot robot){
+		WallFollowState = WallFollowStates.TURNING_PARALLEL_STATE;
+			if(obstDirection == false){
+				robot.vel2((byte)-1,(byte) 1);
+			}
+			
+			else{
+				robot.vel2((byte) 1, (byte) -1);
+				
+			}
+		
+		
+		
+	}
 	
-	public static void GoToGoStraight_SubST(){}
+	public static void GoToGoStraight_SubST(PioneerRobot robot){
+		WallFollowState = WallFollowStates.STRAIGHT_WITH_TUNING_STATE;
+		robot.vel2((byte) 1, (byte) 1);
+	}
 	
-	public static void GoToLostVisual_SubST(){}
+	public static void GoToLostVisual_SubST(PioneerRobot robot){
+		WallFollowState = WallFollowStates.LOST_VISUAL_STATE;
+		robot.stop(); //Stop!
+		//If the obstacle was to the right, we must rotate right.
+		if(obstDirection == false){
+			for(int i = 0; i < 100; i++){
+				robot.dhead((short)-90); //Hammer time!
+			}
+		}
+		//If the obstacle was to the left, we must rotate left.
+		else{
+			for(int i = 0; i< 100; i++){
+				robot.dhead((short)90);
+			}
+			
+		}
+		
+		//Then, move forward.
+		robot.vel2((byte) 1, (byte) 1);
+		
+	}
 
-
+	public static boolean somethingInFront(double[] sensorReadings){
+		return (sensorReadings[3] < WALL_FOLLOW_RANGE || sensorReadings[4] < WALL_FOLLOW_RANGE);
+		
+	}
+	
+	public static boolean somethingToSides(double[] sensorReadings, boolean obstacleDirection){
+		boolean obstRightExpression = (sensorReadings[7] < WALL_FOLLOW_RANGE || sensorReadings[8] < WALL_FOLLOW_RANGE);
+		boolean obstLeftExpression = (sensorReadings[0] < WALL_FOLLOW_RANGE || sensorReadings[15] < WALL_FOLLOW_RANGE);
+		//The boolean argument acts as a switch - if you pass in a true (left) value, then it will return the status of the left sensors.
+		//Vice versa for a false (right) value.
+		return ((obstacleDirection == false) && obstRightExpression) || ((obstacleDirection == true) && obstLeftExpression);
+		
+	}
+	
 
 
 
