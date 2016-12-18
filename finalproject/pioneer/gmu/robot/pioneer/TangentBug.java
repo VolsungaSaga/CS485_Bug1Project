@@ -128,7 +128,7 @@ public class TangentBug {
 
 					// determine which dir to rotate.
 					choseLeftBound = lastHeuristic.getLeft();
-System.out.println("CHOSE LEFT BOUND ***************** " + choseLeftBound);
+					System.out.println("CHOSE LEFT BOUND ***************** " + choseLeftBound);
 					if (!choseLeftBound) {
 						writer.write("the flag was false \n --------------- ");
 						if (sensorReadings[0] < 500 && sensorReadings[15] < 500) {
@@ -172,60 +172,65 @@ System.out.println("CHOSE LEFT BOUND ***************** " + choseLeftBound);
 					writer.write("Straight line with tuning state!!!!!!!!!!!!!!!!!!!!!!");
 					writer.flush();
 					System.out.println("Straight line with tuning state!!!!!!!!!!!!!!!!!!!!!!");
-					//robot.vel2((byte)0, (byte)0);
+					// robot.vel2((byte)0, (byte)0);
 					robot.stop();
-					/*
-					 * int min = 300; int max = 500;
-					 * 
-					 * // inside corner? // if () {
-					 * 
-					 * // }
-					 * 
-					 * if (choseLeftBound) { // this is the happy case we are
-					 * within epsilon and delta and // therefore the next move
-					 * to follow the wall is straight. System.out.println(
-					 * "CHOOOOOOOOOOOOOOOOSELEFTBOUND!!!!!!!!!!!"); if
-					 * ((sensorReadings[7] < max && sensorReadings[8] < max) &&
-					 * sensorReadings[7] >= min && sensorReadings[8] >= min) {
-					 * System.out.println("MIN SUCKS!!!!!!!!!!!!!!!!!!!!!!!!");
-					 * robot.vel2((byte)2, (byte)2); } else if
-					 * (sensorReadings[7] < min && sensorReadings[8] >
-					 * sensorReadings[7]) { // the front sensor is less than the
-					 * back sensor and the front // sensor is less than min.
-					 * therefore roll out.
-					 * System.out.println("MIN SUCKS 2!!!!!!!!!!!!!!!!!!!!!!!!"
-					 * ); robot.vel2((byte)1, (byte)2); } else if(
-					 * sensorReadings[7] > max && sensorReadings[7] >
-					 * sensorReadings[8]) { // the front sensor is great than
-					 * the max range and the // back sensor is closer than the
-					 * front sensor.
-					 * System.out.println("MIN SUCKS 3!!!!!!!!!!!!!!!!!!!!!!!!"
-					 * ); robot.vel2((byte)2, (byte)1); } } else { // this is
-					 * the happy case we are within epsilon and delta and //
-					 * therefore the next move to follow the wall is straight.
-					 * if ((sensorReadings[0] < max && sensorReadings[15] < max)
-					 * && sensorReadings[0] >= min && sensorReadings[15] >= min)
-					 * {
-					 * System.out.println("MIN SUCKS 4!!!!!!!!!!!!!!!!!!!!!!!!"
-					 * ); robot.vel2((byte)2, (byte)2); } else if
-					 * (sensorReadings[0] < min && sensorReadings[15] >
-					 * sensorReadings[0]) { // the front sensor is less than the
-					 * back sensor and the front // sensor is less than min.
-					 * therefore roll out.
-					 * System.out.println("MIN SUCKS 5!!!!!!!!!!!!!!!!!!!!!!!!"
-					 * ); robot.vel2((byte)1, (byte)2); } else if(
-					 * sensorReadings[0] > max && sensorReadings[0] >
-					 * sensorReadings[15]) { // the front sensor is great than
-					 * the max range and the // back sensor is closer than the
-					 * front sensor.
-					 * System.out.println("MIN SUCKS 6!!!!!!!!!!!!!!!!!!!!!!!!"
-					 * ); robot.vel2((byte)2, (byte)1); } }
-					 */
+					int min = 300;
+					int max = 500;
+
+					// inside corner? // if () {
+
+					// }
+
+					if (choseLeftBound) { // this is the happy case we are
+						// within epsilon and delta and // therefore the next
+						// move
+						// to follow the wall is straight. System.out.println(
+						// "CHOOOOOOOOOOOOOOOOSELEFTBOUND!!!!!!!!!!!");
+						if ((sensorReadings[7] < max && sensorReadings[8] < max) && sensorReadings[7] >= min
+								&& sensorReadings[8] >= min) {
+							System.out.println("MIN SUCKS!!!!!!!!!!!!!!!!!!!!!!!!");
+							robot.vel2((byte) 2, (byte) 2);
+						} else if (sensorReadings[7] < min && sensorReadings[8] > sensorReadings[7]) { 
+							System.out.println("MIN SUCKS 2!!!!!!!!!!!!!!!!!!!!!!!!");
+							robot.vel2((byte) 1, (byte) 2);
+						} else if (sensorReadings[7] > max && sensorReadings[7] > sensorReadings[8]) {
+							// the front sensor is great than
+							// the max range and the // back sensor is closer
+							// than the
+							// front sensor.
+							System.out.println("MIN SUCKS 3!!!!!!!!!!!!!!!!!!!!!!!!");
+							robot.vel2((byte) 2, (byte) 1);
+						}
+					} else {
+						// this is
+						// the happy case we are within epsilon and delta and //
+						// therefore the next move to follow the wall is
+						// straight.
+						if ((sensorReadings[0] < max && sensorReadings[15] < max) && sensorReadings[0] >= min
+								&& sensorReadings[15] >= min) {
+							System.out.println("MIN SUCKS 4!!!!!!!!!!!!!!!!!!!!!!");
+							robot.vel2((byte) 2, (byte) 2);
+						} else if (sensorReadings[0] < min && sensorReadings[15] > sensorReadings[0]) {
+							// the front sensor is less than the
+							// back sensor and the front // sensor is less than
+							// min.
+							// therefore roll out.
+							System.out.println("MIN SUCKS 5!!!!!!!!!!!!!!!!!!!!!!!!");
+							robot.vel2((byte) 1, (byte) 2);
+						} else if (sensorReadings[0] > max && sensorReadings[0] > sensorReadings[15]) {
+							// the front sensor is great than
+							// the max range and the // back sensor is closer
+							// than the
+							// front sensor.
+							System.out.println("MIN SUCKS 6!!!!!!!!!!!!!!!!!!!!!!!!");
+							robot.vel2((byte) 2, (byte) 1);
+						}
+					}
 					break;
 				case LOST_VISUAL_STATE:
 					writer.write("Lst visual state\n");
 					writer.flush();
-					//OuterState = OuterStates.GO_TO_GOAL_STATE;
+					// OuterState = OuterStates.GO_TO_GOAL_STATE;
 					break;
 				}
 
@@ -311,7 +316,8 @@ System.out.println("CHOSE LEFT BOUND ***************** " + choseLeftBound);
 		return true;
 	}
 
-	public static void GoToBoundaryFollow_ST(ArrayList<ArrayList<TangentBugBoundary>> boundLists, PioneerRobot robot, Writer writer) {
+	public static void GoToBoundaryFollow_ST(ArrayList<ArrayList<TangentBugBoundary>> boundLists, PioneerRobot robot,
+			Writer writer) {
 		OuterState = OuterStates.BOUNDARY_FOLLOW_STATE; // TODO: Make this do
 														// something proper,
 														// after testing
@@ -362,9 +368,9 @@ System.out.println("CHOSE LEFT BOUND ***************** " + choseLeftBound);
 						e.printStackTrace();
 					}
 					heuristicBound = firstBound;
-					if(firstBound.getSensorIndex() < lastBound.getSensorIndex()){
+					if (firstBound.getSensorIndex() < lastBound.getSensorIndex()) {
 						heuristicBound.setLeft(true);
-					}else{
+					} else {
 						heuristicBound.setLeft(false);
 					}
 				}
@@ -384,18 +390,18 @@ System.out.println("CHOSE LEFT BOUND ***************** " + choseLeftBound);
 						e.printStackTrace();
 					}
 					heuristicBound = lastBound;
-					if (lastBound.getSensorIndex() < firstBound.getSensorIndex()){
+					if (lastBound.getSensorIndex() < firstBound.getSensorIndex()) {
 						heuristicBound.setLeft(true);
 					} else {
 						heuristicBound.setLeft(false);
 					}
-					
+
 				}
 			}
 		}
 		// the last heuristic gets cached so we can determine the direction to
 		// turn if we wall follow.
-	
+
 		lastHeuristic = heuristicBound;
 		return heuristicBound;
 	} // Gets the bound that satisfies the heuristic
